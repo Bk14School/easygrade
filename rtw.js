@@ -1,30 +1,73 @@
-// NEW MODULE: การอ่าน คิดวิเคราะห์ และเขียน (RTW)
-  // 2. ฟังก์ชันคำนวณคะแนนและตัดเกรด
-// ฟังก์ชันคำนวณคะแนน RTW และเลื่อนเคอร์เซอร์อัตโนมัติ (แบบเลื่อนลง)
+// =====================================================
+// MODULE: การอ่าน คิดวิเคราะห์ และเขียน (RTW)
+// =====================================================
+
+// 1. ฟังก์ชันคำนวณคะแนนและเลื่อนเคอร์เซอร์อัตโนมัติ (แบบเลื่อนลงเมื่อพิมพ์ครบ)
 function _rtwInput(el, mx) {
-  if (+el.value > mx) { el.value = mx; Utils.toast('เต็ม ' + mx + ' คะแนน', 'warning'); }
+  // ควบคุมค่าสูงสุด-ต่ำสุด
+  if (+el.value > mx) { 
+    el.value = mx; 
+    Utils.toast('เต็ม ' + mx + ' คะแนน', 'warning'); 
+  }
   if (+el.value < 0) el.value = 0;
-  if (el.value.length >= String(mx).length) {
-    // เลื่อนลงแถวถัดไป คอลัมน์เดิม
-    const tbody = el.closest('tbody');
-    const rows  = [...tbody.querySelectorAll('tr[data-rtwsid]')];
-    const curTr = el.closest('tr');
-    const curIdx = rows.indexOf(curTr);
-    const colIdx = [...curTr.querySelectorAll('.inp-ass')].indexOf(el);
-    const nextTr = rows[curIdx + 1];
-    if (nextTr) {
-      const nextInput = nextTr.querySelectorAll('.inp-ass')[colIdx];
-      if (nextInput) { nextInput.focus(); nextInput.select(); }
+
+  // คำนวณผลรวมของแถวปัจจุบันทันที
+  calcRTWRow(el);
+
+  // ลอจิกเลื่อนช่องอัตโนมัติ (Vertical Auto-tab)
+  let shouldTab = false;
+  const valStr = el.value.toString();
+  const valNum = parseInt(valStr, 10);
+
+  if (valStr.length > 0) {
+    if (mx < 10) {
+      // กรณีคะแนนเต็มหลักเดียว พิมพ์ปุ๊บเลื่อนลงเลย
+      shouldTab = true;
+    } else {
+      // กรณีคะแนนเต็ม 2 หลัก (เช่น 10, 15, 20)
+      if (valStr.length >= 2) {
+        shouldTab = true; 
+      } else {
+        // พิมพ์เพิ่งได้ 1 หลัก จะเลื่อนก็ต่อเมื่อพิมพ์ 0 หรือเลขที่เกินหลักแรกของคะแนนเต็ม
+        const firstDigitOfMax = Math.floor(mx / 10);
+        if (valNum === 0 || valNum > firstDigitOfMax) {
+          shouldTab = true;
+        }
+      }
     }
   }
-  calcRTWRow(el);
+
+  // ทำการย้ายโฟกัสไปยังแถวถัดไป
+  if (shouldTab && document.activeElement === el) {
+    const tbody = el.closest('tbody');
+    if (!tbody) return;
+    const rows = [...tbody.querySelectorAll('tr[data-rtwsid]')];
+    const curTr = el.closest('tr');
+    const curIdx = rows.indexOf(curTr);
+    
+    // หาคลาสของช่องปัจจุบัน (เช่น rtw-c1-3) เพื่อโฟกัสช่องเดียวกันในแถวล่าง
+    const currentClass = Array.from(el.classList).find(c => c.startsWith('rtw-'));
+    
+    const nextTr = rows[curIdx + 1];
+    if (nextTr && currentClass) {
+      const nextInput = nextTr.querySelector('.' + currentClass);
+      if (nextInput) { 
+        nextInput.focus(); 
+        nextInput.select(); 
+      }
+    }
+  }
 }
 
+// 2. ฟังก์ชันคำนวณคะแนนและตัดเกรดในแต่ละแถว
 function calcRTWRow(input) {
   if (!input) return;
   const tr = input.closest('tr');
   const max = parseFloat(input.getAttribute('max'));
-  if (parseFloat(input.value) > max) { input.value = max; Utils.toast(`คะแนนเต็ม ${max}`, 'warning'); }
+  if (parseFloat(input.value) > max) { 
+    input.value = max; 
+    Utils.toast(`คะแนนเต็ม ${max}`, 'warning'); 
+  }
   
   const getV = (sel) => parseFloat(tr.querySelector(sel).value) || 0;
   
@@ -53,23 +96,12 @@ function calcRTWRow(input) {
   if (grandTotal >= 86) { level = "ดีเยี่ยม (3)"; cls = "res-3"; }
   else if (grandTotal >= 70) { level = "ดี (2)"; cls = "res-2"; }
   else if (grandTotal >= 50) { level = "ผ่าน (1)"; cls = "res-1"; }
-  gBadge.textContent = level; gBadge.className = `res-badge rtw-grade ${cls}`;
-
-  // เลื่อนลงอัตโนมัติ (Vertical Auto-tab)
-  if (document.activeElement === input && input.value.length >= 1) {
-    // กรณีคะแนนเต็มเป็นเลข 2 หลัก (เช่น 10, 15) ต้องเช็คให้พิมพ์ครบก่อน
-    if (max >= 10 && input.value.length < 2 && input.value < (max/10)) return; 
-    
-    const nextTr = tr.nextElementSibling;
-    if (nextTr) {
-      const currentClass = Array.from(input.classList).find(c => c.startsWith('rtw-'));
-      const nextInp = nextTr.querySelector('.' + currentClass);
-      if (nextInp) { nextInp.focus(); nextInp.select(); }
-    }
-  }
+  gBadge.textContent = level; 
+  gBadge.className = `res-badge rtw-grade ${cls}`;
 }
 
-// 3. ฟังก์ชันบันทึกข้อมูล
+
+// 3. ฟังก์ชันบันทึกข้อมูล (เพิ่มการจำข้อมูลลง Memory ทันที)
 async function saveRTWData() {
   const records = [];
   $$('#rtwBody tr[data-rtwsid]').forEach(tr => {
@@ -100,32 +132,38 @@ async function saveRTWData() {
       subject   : $('gSubj').value,
       records   : records
     });
+
+    // 🌟 สิ่งที่เพิ่มเข้ามา: นำข้อมูลที่เพิ่งพิมพ์เสร็จ ยัดกลับเข้าไปในหน่วยความจำของระบบทันที
+    // ทำให้เวลาสลับแท็บไปมา หรือสั่งพิมพ์ ข้อมูลจะถูกดึงมาโชว์โดยไม่ต้องโหลดหน้าเว็บใหม่
+    records.forEach(rec => {
+      const stu = App.students.find(s => s.studentId === rec.studentId);
+      if (stu) {
+        stu.rtw_data = rec; 
+      }
+    });
+
     Utils.toast('✅ ' + res);
-  } catch (e) { Utils.toast(e.message, 'error'); }
+  } catch (e) { 
+    Utils.toast(e.message, 'error'); 
+  }
   Utils.hideLoading();
 }
 
 // 4. ฟังก์ชันพิมพ์รายงาน (PDF)
-// ฟังก์ชันพิมพ์รายงาน RTW แบบละเอียด (แยกครั้ง + รวมรายด้าน)
-// ฟังก์ชันพิมพ์รายงาน RTW ครบชุด 3 หน้า (ปก + ตารางแยกครั้ง + เกณฑ์)
-// ฟังก์ชันพิมพ์รายงาน RTW ครบชุด (ปกสวยงาม + ตาราง + เกณฑ์)
-// ฟังก์ชันพิมพ์รายงาน RTW ครบชุด (ดึงครูประจำชั้นจากแท็บ RTW)
 function printRTWReport() {
   const cls = $('gClass').value;
   const subj = $('gSubj').value;
   const directorName = "นางสาวสู่ขวัญ ตลับนาค";
   const academicHead = $('sp_academic_head_name').value || '........................................................';
 
-  // --- ดึงชื่อครูประจำชั้นจากช่องในแท็บนี้โดยตรง ---
+  // ดึงชื่อครูประจำชั้นจากช่องในแท็บนี้โดยตรง
   let rawTeacherName = $('rtw_homeroom_teacher').value.trim();
   if (!rawTeacherName) rawTeacherName = '........................................................';
   
-  // แยกชื่อครูด้วยคำว่า "และ", "/", หรือ "," เพื่อสร้างช่องเซ็นชื่อ
   let teachers = rawTeacherName.split(/\s*(?:และ|\/|,)\s*/).filter(t => t);
   if (teachers.length === 0) teachers = ['........................................................'];
-  const displayTeacherName = teachers.join(' และ '); // แสดงบรรทัดด้านบน
+  const displayTeacherName = teachers.join(' และ '); 
 
-  // 1. ดึงข้อมูลและคำนวณคะแนน
   const rows = [...$$('#rtwBody tr[data-rtwsid]')].map((tr, i) => {
     const getV = (s) => parseFloat(tr.querySelector(s).value) || 0;
     const r1 = getV('.rtw-r1-1') + getV('.rtw-r1-2');
@@ -148,35 +186,27 @@ function printRTWReport() {
 
   if (!rows.length) return Utils.toast('ไม่พบข้อมูลนักเรียน', 'error');
 
-  // 2. คำนวณสถิติ
   const getLvl = (score, max) => {
     const p = (score / max) * 100;
     if (p >= 86) return 'ex'; if (p >= 70) return 'g'; if (p >= 50) return 'p'; return 'i';
   };
 
-  const stats = {
-    r: { ex: 0, g: 0, p: 0, i: 0 },
-    c: { ex: 0, g: 0, p: 0, i: 0 },
-    w: { ex: 0, g: 0, p: 0, i: 0 }
-  };
-
+  const stats = { r: { ex:0, g:0, p:0, i:0 }, c: { ex:0, g:0, p:0, i:0 }, w: { ex:0, g:0, p:0, i:0 } };
   rows.forEach(row => {
     stats.r[getLvl(row.r_total, 30)]++;
     stats.c[getLvl(row.c_total, 40)]++;
     stats.w[getLvl(row.w_total, 30)]++;
   });
 
-  // 3. กำหนดตัวชี้วัดตามระดับชั้น
-  let indicators = [];
+  let indicators =[];
   if (cls.match(/[ป].[1-3]/)) {
-    indicators = ["1. อ่านและหาประสบการณ์จากสื่อที่หลากหลาย", "2. จับประเด็นสำคัญ ข้อเท็จจริง ความคิดเห็น", "3. เปรียบเทียบแง่มุมต่างๆ เช่น ข้อดี-เสีย ประโยชน์-โทษ", "4. แสดงความคิดเห็นต่อเรื่องที่อ่านอย่างมีเหตุผล", "5. ถ่ายทอดความรู้สึกจากเรื่องที่อ่านโดยการเขียน"];
+    indicators =["1. อ่านและหาประสบการณ์จากสื่อที่หลากหลาย", "2. จับประเด็นสำคัญ ข้อเท็จจริง ความคิดเห็น", "3. เปรียบเทียบแง่มุมต่างๆ เช่น ข้อดี-เสีย ประโยชน์-โทษ", "4. แสดงความคิดเห็นต่อเรื่องที่อ่านอย่างมีเหตุผล", "5. ถ่ายทอดความรู้สึกจากเรื่องที่อ่านโดยการเขียน"];
   } else if (cls.match(/[ป].[4-6]/)) {
-    indicators = ["1. อ่านเพื่อหาข้อมูลสารสนเทศเสริมประสบการณ์", "2. จับประเด็นสำคัญ เชื่อมโยงความเป็นเหตุเป็นผล", "3. เชื่อมโยงความสัมพันธ์ของเรื่องราวและเหตุการณ์", "4. แสดงความคิดเห็นต่อเรื่องที่อ่านโดยมีเหตุผลสนับสนุน", "5. ถ่ายทอดความเข้าใจ ความคิดเห็น คุณค่าโดยการเขียน"];
+    indicators =["1. อ่านเพื่อหาข้อมูลสารสนเทศเสริมประสบการณ์", "2. จับประเด็นสำคัญ เชื่อมโยงความเป็นเหตุเป็นผล", "3. เชื่อมโยงความสัมพันธ์ของเรื่องราวและเหตุการณ์", "4. แสดงความคิดเห็นต่อเรื่องที่อ่านโดยมีเหตุผลสนับสนุน", "5. ถ่ายทอดความเข้าใจ ความคิดเห็น คุณค่าโดยการเขียน"];
   } else {
-    indicators = ["1. คัดสรรสื่อเพื่อหาข้อมูลสารสนเทศตามวัตถุประสงค์", "2. จับประเด็นสำคัญ ประเด็นสนับสนุน และโต้แย้ง", "3. วิเคราะห์ วิจารณ์ความสมเหตุสมผลน่าเชื่อถือ", "4. สรุปคุณค่า แนวคิด แง่คิดที่ได้จากการอ่าน", "5. สรุป อภิปราย ขยายความ แสดงความเห็นโต้แย้งโดยการเขียน"];
+    indicators =["1. คัดสรรสื่อเพื่อหาข้อมูลสารสนเทศตามวัตถุประสงค์", "2. จับประเด็นสำคัญ ประเด็นสนับสนุน และโต้แย้ง", "3. วิเคราะห์ วิจารณ์ความสมเหตุสมผลน่าเชื่อถือ", "4. สรุปคุณค่า แนวคิด แง่คิดที่ได้จากการอ่าน", "5. สรุป อภิปราย ขยายความ แสดงความเห็นโต้แย้งโดยการเขียน"];
   }
 
-  // 4. สร้างเอกสาร HTML
   const win = window.open('', '_blank');
   const html = `
     <!DOCTYPE html>
@@ -224,10 +254,8 @@ function printRTWReport() {
 
       <!-- ================= หน้า 1: ปก ================= -->
       <div class="page" style="padding:0;display:flex;flex-direction:column;min-height:260mm;">
-
-        <!-- แถบหัว -->
         <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);color:#fff;padding:22px 30px;display:flex;align-items:center;gap:20px;">
-          <img src="https://raw.githubusercontent.com/Bk14School/easygrade/refs/heads/main/logo-OBEC.png"
+          <img src="https://raw.githubusercontent.com/Bk14School/easygrademain/refs/heads/main/logo-OBEC.png"
                style="width:72px;height:auto;filter:brightness(0) invert(1);">
           <div>
             <div style="font-size:11px;letter-spacing:2px;opacity:.8;margin-bottom:4px;">สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน</div>
@@ -236,10 +264,7 @@ function printRTWReport() {
           </div>
         </div>
 
-        <!-- เนื้อหาปก -->
         <div style="padding:20px 28px;flex:1;">
-
-          <!-- ข้อมูลโรงเรียน + ชั้น -->
           <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:14px 20px;margin-bottom:16px;">
             <div style="font-size:17px;font-weight:800;color:#0c4a6e;margin-bottom:10px;">🏫 โรงเรียนบ้านคลอง 14</div>
             <div style="display:flex;gap:12px;flex-wrap:wrap;">
@@ -254,7 +279,6 @@ function printRTWReport() {
             </div>
           </div>
 
-          <!-- ตารางสรุปสถิติ -->
           <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:8px;">📊 สรุปผลการประเมิน</div>
           <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
             <thead>
@@ -293,7 +317,6 @@ function printRTWReport() {
             </tbody>
           </table>
 
-          <!-- ลายเซ็น -->
           <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:10px;">✍️ การรับรองผลการประเมิน</div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
             ${teachers.map(t => `
@@ -309,7 +332,6 @@ function printRTWReport() {
             </div>
           </div>
 
-          <!-- การอนุมัติ -->
           <div style="border:2px solid #1e3a5f;border-radius:10px;padding:14px 20px;text-align:center;">
             <div style="font-weight:800;font-size:14px;color:#1e3a5f;margin-bottom:10px;">การอนุมัติผลการประเมิน</div>
             <div style="display:flex;justify-content:center;gap:50px;margin-bottom:14px;font-size:14px;">
@@ -402,14 +424,14 @@ function printRTWReport() {
   win.document.open(); win.document.write(html); win.document.close();
 }
 
-  // =====================================================
-    function renderRTWTable() {
+// 5. เรนเดอร์ตารางประเมินลงในหน้าเว็บ
+function renderRTWTable() {
   const container = $('rtwContainer');
   if (!App.students.length) return;
 
   const cls = $('gClass').value.trim();
   
-  // --- ระบบจดจำชื่อครูประจำชั้นแยกตามห้องเรียน ---
+  // ระบบจดจำชื่อครูประจำชั้นแยกตามห้องเรียน
   App.hrMap = App.hrMap || {};
   let hrTeacherStr = App.hrMap[cls];
   if (hrTeacherStr === undefined) {
@@ -522,3 +544,54 @@ function printRTWReport() {
     
   $$('#rtwBody tr[data-rtwsid]').forEach(tr => calcRTWRow(tr.querySelector('.rtw-r1-1')));
 }
+
+
+// =====================================================
+// ระบบเลื่อนช่องกรอกคะแนนด้วยลูกศรคีย์บอร์ด (ซ้าย ขวา ขึ้น ลง)
+// ครอบคลุมทั้งหน้าตารางคะแนนหลัก และหน้าประเมิน/RTW
+// =====================================================
+document.addEventListener('keydown', e => {
+  const activeEl = document.activeElement;
+  
+  // เช็คว่าช่องที่กำลังพิมพ์อยู่เป็นช่องกรอกคะแนนหรือไม่ (.sinput = เกรดหลัก, .inp-ass = RTW/ประเมิน)
+  if (!activeEl || (!activeEl.classList.contains('sinput') && !activeEl.classList.contains('inp-ass'))) return;
+
+  // ดักจับเฉพาะปุ่มลูกศรและปุ่ม Enter
+  const keys =['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'];
+  if (!keys.includes(e.key)) return;
+
+  e.preventDefault(); // ป้องกันหน้าจอเลื่อนตามลูกศร
+
+  const tr = activeEl.closest('tr');
+  const tbody = tr.closest('tbody');
+  if (!tr || !tbody) return;
+
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const rowIndex = rows.indexOf(tr);
+  
+  // ค้นหาช่องกรอกคะแนนทั้งหมดในแถวเดียวกัน (จะกระโดดข้ามช่องผลรวมให้อัตโนมัติ)
+  const rowInputs = Array.from(tr.querySelectorAll('.sinput, .inp-ass'));
+  const colIndex = rowInputs.indexOf(activeEl);
+
+  let targetInput = null;
+
+  if (e.key === 'ArrowUp') {
+    const prevRow = rows[rowIndex - 1];
+    if (prevRow) targetInput = prevRow.querySelectorAll('.sinput, .inp-ass')[colIndex];
+  } 
+  else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    const nextRow = rows[rowIndex + 1];
+    if (nextRow) targetInput = nextRow.querySelectorAll('.sinput, .inp-ass')[colIndex];
+  } 
+  else if (e.key === 'ArrowLeft') {
+    if (colIndex > 0) targetInput = rowInputs[colIndex - 1];
+  } 
+  else if (e.key === 'ArrowRight') {
+    if (colIndex < rowInputs.length - 1) targetInput = rowInputs[colIndex + 1];
+  }
+
+  if (targetInput) {
+    targetInput.focus();
+    targetInput.select();
+  }
+});
