@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบบันทึกคะแนน · โรงเรียนบ้านคลอง 14</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+
+/* ════════════════════════════════════════════════════════
+   GRADE+ · Clean Editorial Design System
+   ════════════════════════════════════════════════════════
+   Philosophy:
+   · Type weight = hierarchy (no color hierarchy)
+   · One accent color, used sparingly
+   · White cards on warm gray canvas
+   · Generous whitespace, tight information density
+   · Every pixel has a reason
+   ════════════════════════════════════════════════════════ */
+
+:root {
+  /* Canvas */
+  --canvas:      #f4f5f7;
+  --card:        #ffffff;
+  --surface:     #fafafa;
+  --overlay:     rgba(15,17,22,.5);
+
+  /* Ink */
+  --ink-900:     #0f1116;
+  --ink-700:     #374151;
+  --ink-500:     #6b7280;
+  --ink-300:     #d1d5db;
+  --ink-100:     #f3f4f6;
+
+  /* Accent — single indigo, used sparingly */
+  --accent:      #4f46e5;
+  --accent-dim:  #eef2ff;
+  --accent-muted:#6366f1;
+
+  /* Semantic */
+  --green:       #16a34a;
+  --green-dim:   #f0fdf4;
+  --green-border:#bbf7d0;
+  --red:         #dc2626;
+  --red-dim:     #fef2f2;
+  --red-border:  #fecaca;
+  --amber:       #d97706;
+  --amber-dim:   #fffbeb;
+  --amber-border:#fde68a;
+
+  /* Score table accent bands */
+  --band-t1:     #2563eb;   /* term1 header */
+  --band-t1-mid: #3b82f6;
+  --band-t1-light:#eff6ff;
+  --band-t2:     #7c3aed;   /* term2 header */
+  --band-t2-mid: #8b5cf6;
+  --band-t2-light:#f5f3ff;
+  --band-dark:   #111827;   /* name col / grand */
+
+  /* Borders */
+  --line:        #e5e7eb;
+  --line-strong: #d1d5db;
+
+  /* Shadows — warm gray tinted */
+  --shadow-xs:   0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:   0 4px 8px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:   0 12px 28px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.05);
+  --shadow-focus: 0 0 0 3px rgba(79,70,229,.18);
+
+  /* Radii */
+  --radius:      12px;
+  --radius-sm:   8px;
+  --radius-xs:   6px;
+
+  /* Motion */
+  --ease-out:    cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+
+  /* Nav height */
+  --nav-h:       56px;
+
+  /* Compat aliases for JS that reads these */
+  --primary:     var(--accent);
+  --primary-dark:var(--accent);
+  --primary-light:var(--accent-dim);
+  --primary-xlight:var(--accent-dim);
+  --pl:          var(--accent-dim);
+  --pd:          var(--accent);
+  --border:      var(--line);
+  --border2:     var(--line-strong);
+  --border-strong:var(--line-strong);
+  --bg:          var(--canvas);
+  --text:        var(--ink-900);
+  --text2:       var(--ink-700);
+  --muted:       var(--ink-500);
+  --muted2:      var(--ink-300);
+  --sh:          var(--shadow-sm);
+  --sh-md:       var(--shadow-md);
+  --sh-lg:       var(--shadow-lg);
+  --sh-glow:     var(--shadow-focus);
+  --r:           var(--radius);
+  --r-sm:        var(--radius-sm);
+  --r-xs:        var(--radius-xs);
+  --success:     var(--green);
+  --success-soft:var(--green-dim);
+  --success-mid: var(--green-border);
+  --success-bg:  var(--green-dim);
+  --success-border:var(--green-border);
+  --danger:      var(--red);
+  --danger-soft: var(--red-dim);
+  --danger-bg:   var(--red-dim);
+  --danger-border:var(--red-border);
+  --warning:     var(--amber);
+  --warning-soft:var(--amber-dim);
+  --warning-bg:  var(--amber-dim);
+  --warning-border:var(--amber-border);
+  --t1:          var(--band-t1);
+  --t1b:         var(--band-t1);
+  --t1s:         #bfdbfe;
+  --t1-soft:     var(--band-t1-light);
+  --t1-mid:      #dbeafe;
+  --t2:          var(--band-t2);
+  --t2b:         var(--band-t2);
+  --t2s:         #ddd6fe;
+  --t2-soft:     var(--band-t2-light);
+}
+
+/* ── Reset ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: 'Sarabun', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  background: var(--canvas);
+  color: var(--ink-900);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Page transitions ──────────────────────── */
+.pg { display: none; }
+.pg.on {
+  display: block;
+  animation: pageIn .24s var(--ease-out);
+}
+@keyframes pageIn {
+  from { opacity:0; transform:translateY(10px) }
+  to   { opacity:1; transform:translateY(0)    }
+}
+
+/* ── Layout ────────────────────────────────── */
+.wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* ── Cards ─────────────────────────────────── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+/* ══════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════ */
+.nav {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 400;
+  height: var(--nav-h);
+}
+.nav-i {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.brand-ic {
+  width: 32px; height: 32px;
+  background: var(--ink-900);
+  border-radius: 8px;
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+}
+.brand-text {
+  font-size: .88rem;
+  font-weight: 800;
+  color: var(--ink-900);
+  letter-spacing: -.01em;
+  line-height: 1.2;
+}
+.nav-sep {
+  width: 1px; height: 20px;
+  background: var(--line);
+  flex-shrink: 0;
+}
+.nav-r {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.tag {
+  display: none;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--ink-100);
+  color: var(--ink-700);
+  font-size: .74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nbtn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  color: var(--ink-500);
+  font-size: .74rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nbtn:hover {
+  background: var(--ink-100);
+  color: var(--ink-900);
+  border-color: var(--ink-300);
+}
+.nbtn.red { color: var(--red); border-color: var(--red-border); }
+.nbtn.red:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+/* Settings tabs (hidden from nav, shown inline in grade page) */
+.settings-tabs-wrap { display: none !important; }
+.settings-panel { display: none !important; }
+.settings-panel.active { display: block !important; animation: tabIn .18s var(--ease-out); }
+@keyframes tabIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══════════════════════════════════════════════
+   LOGIN PAGE
+   ══════════════════════════════════════════════ */
+.login-shell {
+  min-height: calc(100dvh - var(--nav-h));
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--canvas);
+}
+.login-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+.login-ic {
+  width: 56px; height: 56px;
+  background: var(--ink-900);
+  border-radius: 14px;
+  margin: 0 auto 18px;
+  display: grid; place-items: center;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+.login-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; color: var(--ink-900); }
+.login-sub   { font-size: .82rem; color: var(--ink-500); margin-bottom: 24px; }
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--ink-300);
+  transition: all .22s var(--ease-spring);
+}
+.dot.on { background: var(--ink-900); transform: scale(1.45); }
+.dot.err { background: var(--red); transform: scale(1.45); }
+.pinpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 200px;
+  margin: 0 auto;
+}
+.pkey {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink-900);
+  cursor: pointer;
+  display: grid; place-items: center;
+  user-select: none;
+  transition: all .12s;
+  font-family: inherit;
+  min-height: 54px;
+}
+.pkey:hover  { background: var(--ink-100); border-color: var(--line-strong); }
+.pkey:active { transform: scale(.92); background: var(--ink-100); }
+.pkey.fn { font-size: .85rem; color: var(--ink-500); }
+
+/* ══════════════════════════════════════════════
+   MODAL
+   ══════════════════════════════════════════════ */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--overlay);
+  z-index: 9000;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-box {
+  background: var(--card);
+  width: 95%; max-width: 500px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  max-height: 90dvh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN PAGE
+   ══════════════════════════════════════════════ */
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .83rem;
+}
+.adm-table th {
+  background: var(--ink-900);
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 700;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.adm-table th:first-child { border-radius: 8px 0 0 0; }
+.adm-table th:last-child  { border-radius: 0 8px 0 0; }
+.adm-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.adm-table tbody tr:last-child td { border-bottom: none; }
+.adm-table tbody tr:hover td { background: var(--surface); }
+
+.badge-item {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--ink-100); color: var(--ink-700);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px; padding: 2px 10px;
+  font-size: .72rem; font-weight: 700; margin: 2px;
+}
+.badge-item button { background:none;border:none;color:var(--red);cursor:pointer;font-size:.88rem;padding:0;line-height:1; }
+
+/* Admin tab bar */
+.admin-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--ink-100);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.admin-tab {
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--ink-500);
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.admin-tab:hover { background: rgba(255,255,255,.7); color: var(--ink-900); }
+.admin-tab.on { background: var(--card); color: var(--ink-900); box-shadow: var(--shadow-xs); font-weight: 800; }
+
+/* Subject Manager */
+.sm-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: .83rem;
+  transition: border-color .15s, box-shadow .15s;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.sm-row:hover { border-color: var(--line-strong); box-shadow: var(--shadow-xs); }
+.sm-drag { color: var(--ink-300); cursor: grab; font-size: 1rem; user-select: none; }
+.sm-drag:active { cursor: grabbing; }
+.sm-num { color: var(--ink-300); font-size: .7rem; font-weight: 800; min-width: 20px; text-align: center; }
+.sm-name { font-weight: 700; color: var(--ink-900); flex: 1; min-width: 120px; }
+.sm-actions { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.sm-btn-edit { padding: 4px 10px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); color: var(--ink-500); font-size: .73rem; cursor: pointer; font-family: inherit; transition: all .15s; }
+.sm-btn-edit:hover { border-color: var(--ink-900); color: var(--ink-900); }
+.sm-btn-type { padding: 4px 10px; border: 1px solid #c7d2fe; border-radius: 6px; background: #eef2ff; color: var(--accent); font-size: .72rem; cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap; }
+.sm-btn-type:hover { background: #e0e7ff; }
+.sm-btn-del { padding: 4px 10px; border: 1px solid var(--red-border); border-radius: 6px; background: var(--red-dim); color: var(--red); font-size: .74rem; cursor: pointer; font-family: inherit; transition: all .15s; }
+.sm-btn-del:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.sm-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 4px; font-size: .68rem; font-weight: 800; white-space: nowrap; flex-shrink: 0; }
+.sm-badge.seq { background: #eef2ff; color: var(--accent); border: 1px solid #c7d2fe; }
+
+/* ══════════════════════════════════════════════
+   FORMS / INPUTS
+   ══════════════════════════════════════════════ */
+.sg label {
+  display: block;
+  font-size: .64rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink-500);
+  margin-bottom: 5px;
+}
+.sg input, .sg select,
+.subj-selector .sg-pill select,
+.subj-selector .sg-pill input {
+  font-family: inherit;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  padding: 8px 11px;
+  font-size: .85rem;
+  background: var(--card);
+  min-height: 38px;
+  color: var(--ink-900);
+  font-weight: 600;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+}
+.sg input:focus, .sg select:focus,
+.subj-selector .sg-pill select:focus,
+.subj-selector .sg-pill input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+.cfg-row { display: flex; flex-wrap: wrap; gap: 16px; }
+.cfg-block { display: flex; flex-direction: column; gap: 5px; }
+.cfg-ttl { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-500); }
+.cfg-n {
+  width: 64px; text-align: center; font-weight: 700;
+  padding: 7px 4px; border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs); font-size: .9rem;
+  font-family: inherit; min-height: 38px; color: var(--ink-900);
+  background: var(--card); transition: all .15s;
+}
+.cfg-n:focus { outline: none; border-color: var(--accent); box-shadow: var(--shadow-focus); }
+.cfg-n::-webkit-outer-spin-button, .cfg-n::-webkit-inner-spin-button { -webkit-appearance: none; }
+.cfg-inline { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.sel-bar {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+}
+
+/* ══════════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════════ */
+.btn-pri, .btn-save, .btn-apply, .btn-load {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font-family: inherit; font-weight: 700; font-size: .85rem;
+  cursor: pointer; border: none; border-radius: var(--radius-xs);
+  min-height: 38px; padding: 0 18px;
+  transition: all .18s var(--ease-out);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.btn-pri  { background: var(--ink-900); color: #fff; }
+.btn-save { background: var(--green); color: #fff; }
+.btn-apply{ background: var(--accent); color: #fff; width: 100%; min-height: 42px; margin-top: 10px; }
+.btn-load { background: var(--ink-900); color: #fff; align-self: flex-end; }
+
+.btn-pri:hover   { background: var(--ink-700); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-save:hover  { background: #15803d; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,163,74,.3); }
+.btn-apply:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,.3); }
+.btn-load:hover  { background: var(--ink-700); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-pri:active, .btn-save:active, .btn-apply:active, .btn-load:active { transform: translateY(0); }
+
+.btn-sm {
+  padding: 4px 12px; border-radius: var(--radius-xs);
+  font-size: .74rem; font-weight: 700;
+  border: 1px solid var(--line-strong);
+  background: var(--card); color: var(--ink-700);
+  cursor: pointer; font-family: inherit; min-height: 30px;
+  transition: all .15s;
+}
+.btn-sm:hover { border-color: var(--ink-900); color: var(--ink-900); background: var(--surface); }
+.btn-rm {
+  background: var(--red-dim); color: var(--red);
+  border: 1px solid var(--red-border); border-radius: var(--radius-xs);
+  width: 30px; height: 30px; cursor: pointer; font-size: .82rem;
+  display: grid; place-items: center; flex-shrink: 0; transition: all .15s;
+}
+.btn-rm:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-add-sub {
+  width: 100%; padding: 10px;
+  background: transparent; color: var(--ink-500);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-sm); font-family: inherit;
+  font-weight: 700; font-size: .82rem; cursor: pointer;
+  transition: all .15s; min-height: 42px;
+}
+.btn-add-sub:hover { background: var(--surface); color: var(--ink-900); border-color: var(--ink-300); }
+.btn-next {
+  border: 1px solid var(--line-strong); border-radius: var(--radius-xs);
+  padding: 8px 16px; background: var(--card); color: var(--ink-700);
+  font-family: inherit; font-weight: 700; cursor: pointer;
+  transition: all .15s; font-size: .83rem;
+}
+.btn-next:hover { border-color: var(--ink-900); color: var(--ink-900); background: var(--surface); }
+
+/* ══════════════════════════════════════════════
+   TABS (various)
+   ══════════════════════════════════════════════ */
+.ttabs {
+  display: inline-flex;
+  background: var(--ink-100);
+  border-radius: var(--radius-sm);
+  padding: 3px; gap: 2px;
+  border: 1px solid var(--line);
+}
+.ttab {
+  padding: 6px 16px; border-radius: 6px; border: none;
+  background: transparent; font-weight: 700; font-size: .8rem;
+  color: var(--ink-500); cursor: pointer; font-family: inherit;
+  transition: all .15s; min-height: 32px;
+}
+.ttab.on { background: var(--card); color: var(--ink-900); box-shadow: var(--shadow-xs); }
+.unit-tabs { display: flex; flex-wrap: wrap; gap: 5px; }
+.utab {
+  padding: 5px 14px; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--card);
+  color: var(--ink-500); font-weight: 700; font-size: .78rem;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.utab:hover { border-color: var(--ink-900); color: var(--ink-900); }
+.utab.on { background: var(--ink-900); color: #fff; border-color: var(--ink-900); }
+
+/* Grade tabs (inside body) */
+.grade-tabs-bar {
+  display: flex; gap: 1px;
+  overflow-x: auto; scrollbar-width: none;
+  background: var(--ink-100);
+  border: 1px solid var(--line);
+  border-radius: 10px; padding: 3px;
+  margin-bottom: 16px;
+}
+.grade-tabs-bar::-webkit-scrollbar { display: none; }
+.gtab {
+  flex: none; padding: 7px 13px; min-height: 32px;
+  border-radius: 7px; border: none;
+  background: transparent; color: var(--ink-500);
+  cursor: pointer; font-family: inherit;
+  font-size: .76rem; font-weight: 700;
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; transition: all .15s;
+}
+.gtab:hover { background: rgba(255,255,255,.7); color: var(--ink-900); }
+.gtab.active { background: var(--card); color: var(--ink-900); box-shadow: var(--shadow-xs); font-weight: 800; }
+
+/* Term tabs */
+.term-tabs {
+  display: inline-flex;
+  background: var(--ink-100);
+  border: 1px solid var(--line);
+  border-radius: 9px; padding: 3px; gap: 2px;
+}
+.term-tab {
+  padding: 6px 18px; border-radius: 6px; border: none;
+  background: transparent; font-family: inherit;
+  font-weight: 700; font-size: .83rem;
+  color: var(--ink-500); cursor: pointer;
+  transition: all .15s; min-height: 32px; white-space: nowrap;
+}
+.term-tab:hover { background: rgba(255,255,255,.7); color: var(--ink-900); }
+.term-tab.t1.on { background: var(--band-t1); color: #fff; }
+.term-tab.t2.on { background: var(--band-t2); color: #fff; }
+.term-tab.ty.on { background: var(--ink-900); color: #fff; }
+
+/* ══════════════════════════════════════════════
+   SUBJECT SELECTOR / HEADER
+   ══════════════════════════════════════════════ */
+.subj-selector {
+  display: flex; align-items: flex-end;
+  gap: 12px; flex-wrap: wrap;
+  padding: 16px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.subj-selector .sg-pill { display: flex; flex-direction: column; gap: 4px; }
+.subj-selector .sg-pill label {
+  font-size: .64rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink-500); margin: 0;
+}
+.lock-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.lock-bar-info { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lock-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--card); border: 1px solid var(--line-strong);
+  border-radius: 999px; padding: 4px 12px;
+  font-size: .78rem; font-weight: 700; color: var(--ink-900);
+}
+.subj-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  padding: 14px 20px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-xs);
+}
+.subj-title { display: flex; align-items: center; gap: 10px; }
+.subj-title-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--ink-900); display: grid; place-items: center;
+  color: #fff; font-size: .9rem; flex-shrink: 0;
+}
+.subj-title-text { font-weight: 800; font-size: .97rem; color: var(--ink-900); line-height: 1.2; }
+.subj-title-sub { font-size: .76rem; color: var(--ink-500); margin-top: 1px; }
+
+/* ══════════════════════════════════════════════
+   SCORE TABLE
+   ══════════════════════════════════════════════ */
+.tbl-wrap {
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  max-height: 75vh;
+  background: var(--card);
+}
+.gtbl {
+  width: max-content; min-width: 100%;
+  border-collapse: separate; border-spacing: 0;
+  font-size: .83rem; background: var(--card);
+}
+.gtbl th {
+  padding: 9px 10px; text-align: center;
+  border-right: 1px solid rgba(255,255,255,.12);
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  white-space: nowrap; color: #fff;
+  font-weight: 700; font-size: .76rem;
+  letter-spacing: .01em;
+}
+.gtbl td {
+  padding: 7px 9px; text-align: center;
+  border-right: 1px solid var(--ink-100);
+  border-bottom: 1px solid var(--ink-100);
+  vertical-align: middle; background: var(--card);
+  transition: background .1s;
+}
+.gtbl tbody tr:hover td { background: var(--surface) !important; }
+
+/* Header color bands */
+.th-base  { background: var(--band-dark) !important; }
+.th-att   { background: #1f2937 !important; }
+.th-t1s   { background: var(--band-t1) !important; }
+.th-t1si  { background: var(--band-t1-mid) !important; font-size:.72rem!important; }
+.th-t1raw { background: #bfdbfe !important; color: #1e3a8a !important; font-size:.72rem!important; }
+.th-t1sc  { background: #1e40af !important; }
+.th-t1e   { background: var(--band-t1) !important; }
+.th-t1t   { background: #1d4ed8 !important; }
+.th-t2s   { background: var(--band-t2) !important; }
+.th-t2si  { background: var(--band-t2-mid) !important; font-size:.72rem!important; }
+.th-t2raw { background: #ddd6fe !important; color: #3b0764 !important; font-size:.72rem!important; }
+.th-t2sc  { background: #6d28d9 !important; }
+.th-t2e   { background: var(--band-t2) !important; }
+.th-t2t   { background: #7c3aed !important; }
+.th-grand { background: var(--band-dark) !important; }
+.th-sum-keep { background: var(--accent) !important; }
+.th-sum-exam { background: #92400e !important; }
+.td-sum-keep { background: #eef2ff !important; }
+.td-sum-exam { background: #fffbeb !important; }
+.sbadge-keep {
+  display: inline-block; font-weight: 800; padding: 2px 9px;
+  border-radius: 5px; min-width: 42px; font-size: .81rem;
+  background: #e0e7ff; color: #3730a3;
+}
+.sbadge-exam {
+  display: inline-block; font-weight: 800; padding: 2px 9px;
+  border-radius: 5px; min-width: 42px; font-size: .81rem;
+  background: #fef3c7; color: #92400e;
+}
+
+/* Sticky header rows */
+.gtbl thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 40; height: 48px; }
+.gtbl thead tr:nth-child(2) th { position: sticky; top: 48px; z-index: 39; height: 48px; }
+.gtbl thead tr:nth-child(3) th { position: sticky; top: 96px; z-index: 38; height: 44px; }
+.gtbl thead tr:nth-child(1) th,
+.gtbl thead tr:nth-child(2) th,
+.gtbl thead tr:nth-child(3) th { box-shadow: inset 0 -1px 0 rgba(255,255,255,.1); }
+
+/* Sticky columns */
+.gtbl thead th.s-c0, .gtbl thead th.s-c1, .gtbl thead th.s-c2 { position: sticky; z-index: 70 !important; }
+.gtbl thead th.s-c0, .gtbl tbody td.s-c0 { left: 0; }
+.gtbl thead th.s-c1, .gtbl tbody td.s-c1 { left: 36px; }
+.gtbl thead th.s-c2, .gtbl tbody td.s-c2 { left: 108px; }
+.gtbl tbody td.s-c0, .gtbl tbody td.s-c1, .gtbl tbody td.s-c2 { position: sticky; z-index: 25 !important; }
+.gtbl tbody td.s-c0 { background: #111827 !important; color: #6b7280; font-size: .74rem; }
+.gtbl tbody td.s-c1 { background: #111827 !important; color: #6b7280; font-size: .72rem; }
+.gtbl tbody td.s-c2 {
+  background: var(--card) !important; color: var(--ink-900);
+  text-align: left; font-weight: 600;
+  min-width: 240px; max-width: 320px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.gtbl thead th.s-c0, .gtbl thead th.s-c1, .gtbl thead th.s-c2 { background: #111827 !important; }
+.gtbl thead th.s-c2 { min-width: 240px; white-space: nowrap; }
+.gtbl thead th.s-c2, .gtbl tbody td.s-c2 {
+  border-right: 2px solid #374151 !important;
+  box-shadow: 4px 0 8px rgba(0,0,0,.07), 2px 0 0 #374151;
+}
+.gtbl tbody tr:hover td.s-c0 { background: #1f2937 !important; }
+.gtbl tbody tr:hover td.s-c1 { background: #1f2937 !important; }
+.gtbl tbody tr:hover td.s-c2 { background: var(--surface) !important; }
+
+/* Cell tints */
+.td-sub1 { background: #f8faff !important; }
+.td-sc1  { background: #dbeafe !important; font-weight: 800; color: #1e3a8a; font-size: .88rem; }
+.td-sub2 { background: #faf8ff !important; }
+.td-sc2  { background: #ede9fe !important; font-weight: 800; color: #3b0764; font-size: .88rem; }
+
+/* ── Score inputs ──────────────────────────── */
+.sinput {
+  width: 50px; min-width: 50px; text-align: center;
+  font-weight: 700; padding: 5px 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px; font-size: .82rem;
+  font-family: inherit; background: var(--card);
+  transition: all .15s; min-height: 34px; color: var(--ink-900);
+}
+.sinput:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: var(--shadow-focus); transform: scale(1.04);
+}
+.sinput.t2 { border-color: #ddd6fe; }
+.sinput::-webkit-outer-spin-button, .sinput::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sinput.score-empty   { background: #fef2f2 !important; border-color: #fca5a5 !important; color: #991b1b !important; }
+.sinput.score-partial { background: #f0fdf4 !important; border-color: #86efac !important; color: #14532d !important; }
+.sinput.score-full    { background: #eff6ff !important; border-color: #93c5fd !important; color: #1e3a8a !important; }
+
+/* ── Badges ────────────────────────────────── */
+.tbadge { display: inline-block; font-weight: 700; padding: 2px 8px; border-radius: 5px; min-width: 40px; font-size: .79rem; }
+.tbadge.ok   { background: var(--green-dim); color: var(--green); }
+.tbadge.fail { background: var(--red-dim);   color: var(--red); }
+.tbadge.nil  { background: var(--ink-100);   color: var(--ink-500); font-weight: 500; }
+.gbadge { display: inline-block; font-weight: 900; padding: 3px 10px; border-radius: 6px; min-width: 42px; font-size: .84rem; }
+.gbadge.ok   { background: var(--green-dim); color: var(--green); }
+.gbadge.fail { background: var(--red-dim);   color: var(--red); }
+.gbadge.nil  { background: var(--ink-100);   color: var(--ink-500); font-weight: 500; }
+.sp { display: inline-block; border-radius: 4px; padding: 1px 6px; font-size: .67rem; font-weight: 700; }
+.sp.p { background: var(--green-dim); color: var(--green); }
+.sp.a { background: var(--red-dim);   color: var(--red); }
+.sp.l { background: var(--amber-dim); color: var(--amber); }
+
+/* Collapse btns in table */
+.tbtn {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.22);
+  color: #fff; border-radius: 5px; padding: 3px 8px;
+  font-size: .69rem; font-weight: 800; font-family: inherit;
+  cursor: pointer; transition: background .15s; white-space: nowrap;
+  margin-top: 3px; min-height: 24px;
+}
+.tbtn:hover { background: rgba(255,255,255,.28); }
+.tbtn .arr { display: inline-block; transition: transform .2s; font-size: .62rem; }
+.gtbl.t1-collapsed .sc1 { display: none; }
+.gtbl.t2-collapsed .sc2 { display: none; }
+.gtbl.t1-collapsed #tbtn1 .arr { transform: rotate(-90deg); }
+.gtbl.t2-collapsed #tbtn2 .arr { transform: rotate(-90deg); }
+
+/* ── Assessment table ──────────────────────── */
+.ass-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; margin-top: 10px; }
+.ass-tbl { width: 100%; border-collapse: collapse; font-size: .79rem; min-width: 900px; }
+.ass-tbl th, .ass-tbl td { border: 1px solid var(--ink-100); padding: 5px; text-align: center; vertical-align: middle; }
+.ass-tbl thead th { background: var(--surface); font-weight: 700; color: var(--ink-900); }
+.v-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; max-height: 140px; padding: 8px 4px; font-weight: 600; font-size: .71rem; text-align: left; }
+.bg-char { background: #fefce8 !important; color: #713f12; }
+.bg-rw   { background: #fff7ed !important; color: #7c2d12; }
+.bg-sum  { background: var(--ink-100) !important; font-weight: bold; }
+.inp-ass { width: 28px; text-align: center; border: 1px solid var(--line-strong); border-radius: 4px; padding: 2px 0; font-family: inherit; font-weight: 700; background: var(--card); }
+.inp-ass:focus { border-color: var(--accent); outline: none; background: var(--accent-dim); }
+.res-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: .75rem; }
+.res-3 { background: var(--green-dim);  color: var(--green); }
+.res-2 { background: var(--accent-dim); color: var(--accent); }
+.res-1 { background: var(--amber-dim);  color: var(--amber); }
+.res-0 { background: var(--red-dim);    color: var(--red); }
+
+/* ── Sub-item rows ─────────────────────────── */
+.sub-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.sub-row {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; transition: border-color .15s;
+}
+.sub-row:hover { border-color: var(--line-strong); }
+.sub-n { font-size: .71rem; color: var(--ink-300); font-weight: 800; min-width: 18px; }
+.sub-name {
+  flex: 1; border: none; border-bottom: 1px solid var(--line);
+  background: transparent; font-size: .85rem; padding: 3px 4px;
+  font-family: inherit; color: var(--ink-900); min-height: 34px;
+}
+.sub-name:focus { outline: none; border-bottom-color: var(--accent); }
+.sub-max-lbl { font-size: .71rem; color: var(--ink-500); white-space: nowrap; }
+.sub-max {
+  width: 52px; text-align: center; font-weight: 700;
+  border: 1px solid var(--line-strong); border-radius: 5px;
+  padding: 4px; font-size: .85rem; font-family: inherit;
+  color: var(--ink-900); background: var(--surface); min-height: 32px;
+}
+.sub-max:focus { outline: none; border-color: var(--accent); }
+.sub-max::-webkit-outer-spin-button, .sub-max::-webkit-inner-spin-button { -webkit-appearance: none; }
+.raw-preview {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: .74rem; color: var(--ink-500); margin-top: 8px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 7px; padding: 7px 11px;
+}
+.raw-preview strong { color: var(--ink-900); }
+.raw-preview .res   { color: var(--ink-900); font-weight: 800; }
+
+/* ── Grade actions ─────────────────────────── */
+.grade-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Toggle switch ─────────────────────────── */
+.toggle-wrap {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 999px;
+}
+.toggle-label { font-size: .75rem; font-weight: 700; color: var(--ink-500); }
+.toggle-sw {
+  position: relative; width: 36px; height: 19px;
+  border-radius: 999px; background: var(--ink-300);
+  cursor: pointer; transition: background .2s;
+  flex-shrink: 0; border: none; outline: none; padding: 0;
+}
+.toggle-sw.on { background: var(--ink-900); }
+.toggle-sw::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 15px; height: 15px; border-radius: 50%; background: #fff;
+  transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-sw.on::after { left: 19px; }
+
+/* ── Floating save button ──────────────────── */
+.float-save {
+  position: sticky; bottom: 16px; z-index: 200;
+  margin: 12px 0 0; display: flex;
+  justify-content: flex-end; pointer-events: none;
+}
+.float-save-btn {
+  pointer-events: all;
+  background: var(--green); color: #fff; border: none;
+  padding: 11px 26px; border-radius: 12px;
+  font-size: .9rem; font-weight: 800; cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 20px rgba(22,163,74,.35);
+  transition: all .18s var(--ease-out);
+  letter-spacing: .01em;
+  display: flex; align-items: center; gap: 7px;
+}
+.float-save-btn:hover {
+  background: #15803d; transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(22,163,74,.45);
+}
+.float-save-btn:active { transform: translateY(0); }
+
+/* ── Course overview ───────────────────────── */
+.subject-overview-card { padding: 16px; border: 1px solid var(--line); background: var(--surface); }
+.subject-overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 8px; }
+.overview-item { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-height: 70px; }
+.overview-label { font-size: .64rem; color: var(--ink-500); margin-bottom: 4px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.overview-value { font-size: .93rem; font-weight: 800; color: var(--ink-900); line-height: 1.3; word-break: break-word; }
+.course-subtabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+.course-subtab {
+  border: 1px solid var(--line-strong); padding: 6px 14px; border-radius: 999px;
+  background: var(--card); color: var(--ink-500); font-family: inherit;
+  font-size: .8rem; font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.course-subtab:hover { border-color: var(--ink-900); color: var(--ink-900); }
+.course-subtab.on { background: var(--ink-900); color: #fff; border-color: var(--ink-900); }
+.course-subpanel { display: block; }
+.subject-section-title { font-weight: 800; font-size: .9rem; color: var(--ink-900); margin-bottom: 12px; }
+.subject-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ── Schedule ──────────────────────────────── */
+.schedule-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; align-items: start; }
+.schedule-day-grid { display: grid; grid-template-columns: repeat(5, minmax(52px, 1fr)); gap: 8px; }
+.schedule-day-box { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px; text-align: center; }
+.schedule-help { font-size: .73rem; color: var(--ink-500); margin-top: 6px; line-height: 1.5; }
+.hours-summary-box { background: var(--green-dim); color: var(--green); font-size: .86rem; font-weight: 700; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--green-border); }
+.units-layout { display: grid; grid-template-columns: 300px 1fr; gap: 14px; align-items: start; }
+.units-side .card, .units-main .card { margin-bottom: 12px; }
+.mini-title { font-weight: 800; font-size: .82rem; color: var(--ink-900); margin-bottom: 8px; }
+.score-mini-list { display: grid; gap: 6px; }
+.score-mini-item { display: flex; justify-content: space-between; gap: 12px; padding: 9px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; font-size: .82rem; font-weight: 700; }
+.score-mini-item .val { font-weight: 900; }
+.unit-side-note { font-size: .73rem; color: var(--ink-500); line-height: 1.6; }
+
+/* ── Loading ───────────────────────────────── */
+#pgov {
+  display: none; position: fixed; inset: 0;
+  background: rgba(244,245,247,.85);
+  backdrop-filter: blur(6px); z-index: 9900;
+  justify-content: center; align-items: center;
+}
+.pgbox {
+  background: var(--card); border-radius: 14px;
+  padding: 32px 44px; text-align: center;
+  box-shadow: var(--shadow-lg); border: 1px solid var(--line);
+}
+.spin {
+  width: 34px; height: 34px;
+  border: 2.5px solid var(--ink-100);
+  border-top-color: var(--ink-900);
+  border-radius: 50%; animation: spin .65s linear infinite;
+  margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg) } }
+
+/* ── Toast ─────────────────────────────────── */
+.tshelf { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.tst {
+  padding: 10px 18px; border-radius: 9px;
+  font-size: .8rem; font-weight: 700; color: #fff;
+  box-shadow: var(--shadow-md);
+  animation: tIn .22s var(--ease-out); pointer-events: auto;
+}
+.tst.success { background: var(--green); }
+.tst.error   { background: var(--red); }
+.tst.warning { background: var(--amber); color: var(--ink-900); }
+@keyframes tIn { from { opacity:0;transform:translateX(14px) } to { opacity:1;transform:translateX(0) } }
+
+/* ── Settings card ─────────────────────────── */
+.settings-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 18px 20px; border: 1px solid var(--line); margin-bottom: 12px; }
+
+/* ── Misc utility ──────────────────────────── */
+.divider { height: 1px; background: var(--line); margin: 12px 0; }
+.sec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.sec-head-dot { width: 3px; height: 18px; border-radius: 999px; background: var(--ink-900); flex-shrink: 0; }
+.sec-head-title { font-weight: 800; font-size: .9rem; color: var(--ink-900); }
+.sec-head-sub { font-size: .74rem; color: var(--ink-500); margin-left: auto; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 4px; font-size: .72rem; font-weight: 700; border: 1px solid transparent; }
+.chip-sky    { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+.chip-violet { background: #eef2ff; color: var(--accent); border-color: #c7d2fe; }
+.chip-green  { background: var(--green-dim); color: var(--green); border-color: var(--green-border); }
+.chip-amber  { background: var(--amber-dim); color: var(--amber); border-color: var(--amber-border); }
+
+/* ── Responsive ────────────────────────────── */
+@media (max-width:1100px) {
+  .settings-tab .tab-label { display: none; }
+  .nbtn .nbtn-label { display: none; }
+  .nbtn { min-width: 32px; padding: 0 10px; }
+}
+@media (max-width:768px) {
+  .wrap { padding: 16px 12px; }
+  .nav-i { padding: 0 12px; }
+  .gtbl thead th.s-c0, .gtbl thead th.s-c1,
+  .gtbl tbody td.s-c0, .gtbl tbody td.s-c1 { display: none !important; }
+  .gtbl thead th.s-c2, .gtbl tbody td.s-c2 { left: 0 !important; min-width: 170px !important; max-width: none !important; white-space: nowrap !important; }
+  .gtbl thead th.s-c2 { z-index: 75 !important; background: #111827 !important; color: #fff !important; }
+  .gtbl tbody td.s-c2 { z-index: 30 !important; background: var(--card) !important; text-align: left !important; }
+  .gtbl th, .gtbl td { padding: 4px 5px !important; }
+  .sinput { width: 44px; min-width: 44px; height: 32px; }
+  .ass-wrap { max-height: 70dvh; overflow: auto; -webkit-overflow-scrolling: touch; }
+  .ass-tbl .ass-no { display: none !important; }
+  .ass-tbl .ass-name { position: sticky !important; left: 0 !important; z-index: 35 !important; min-width: 160px !important; white-space: nowrap !important; text-align: left !important; background: var(--card) !important; }
+  .ass-tbl thead th { position: sticky; top: 0; z-index: 20; }
+  .schedule-layout { grid-template-columns: 1fr; }
+  .units-layout { grid-template-columns: 1fr; }
+}
+@media (max-width:600px) {
+  .sub-row { flex-wrap: wrap; gap: 6px; }
+  .sub-name { width: 100%; flex: none; }
+  .sel-bar { flex-direction: column; align-items: stretch; }
+  .cfg-row { gap: 12px; }
+  .grade-actions { width: 100%; }
+  .grade-actions .btn-pri { flex: 1 1 auto; min-width: 0; font-size: .75rem; padding: 0 10px; }
+}
+@media (max-width:420px) {
+  .brand-ic { width: 28px; height: 28px; min-width: 28px; }
+  .brand-text { font-size: .83rem; }
+}
+
+</style>
+</head>
+<body>
+<!-- ── Nav ─────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-i">
+    <div class="brand">
+      <div class="brand-ic">G+</div>
+      <span class="brand-text">ระบบบันทึกคะแนน</span>
+    </div>
+    <div class="nav-sep"></div>
+    <div id="teacherTag" class="tag" style="display:none;">🎓</div>
+    <div class="nav-r">
+      <button class="nbtn" id="btnAdmin" onclick="showPage('adminPage')" style="display:none;">⚙️ <span class="nbtn-label">แอดมิน</span></button>
+      <button class="nbtn" id="btnGrade" onclick="showPage('gradePage')" style="display:none;">📝 <span class="nbtn-label">กรอกคะแนน</span></button>
+      <button class="nbtn red" id="btnOut" onclick="logout()" style="display:none;">⏏ <span class="nbtn-label">ออก</span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Settings tabs (kept for JS compat — hidden) ── -->
+<div class="settings-tabs-wrap" id="settingsTabsWrap" style="display:none!important;">
+  <div class="settings-tabs" id="settingsTabs">
+    <button type="button" class="settings-tab active" id="tabScoreMain" onclick="showScoreMain(this)"><span class="tab-icon">📋</span><span class="tab-label">คะแนน</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('courseInfo',this)"><span class="tab-icon">📝</span><span class="tab-label">รายวิชา</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('holistic',this)"><span class="tab-icon">🌟</span><span class="tab-label">ประเมิน</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('activities',this)"><span class="tab-icon">🎯</span><span class="tab-label">กิจกรรม</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('schoolProfile',this)"><span class="tab-icon">🏫</span><span class="tab-label">โรงเรียน</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('allGrades',this);_initAllGradesTab();"><span class="tab-icon">📊</span><span class="tab-label">สรุปทุกชั้น</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('club',this)"><span class="tab-icon">⭐</span><span class="tab-label">ชุมนุม</span></button>
+    <button type="button" class="settings-tab" onclick="switchSettingsTab('homeroom',this)"><span class="tab-icon">🏠</span><span class="tab-label">ครูประจำชั้น</span></button>
+  </div>
+</div>
+
+<!-- ── Toast shelf ── -->
+<div class="tshelf" id="tshelf"></div>
+
+<!-- ── Loading overlay ── -->
+<div id="pgov" style="display:none;">
+  <div class="pgbox">
+    <div class="spin"></div>
+    <p id="pgTxt" style="margin:0;font-weight:700;color:var(--ink-700);">กำลังโหลด…</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     LOGIN PAGE
+     ════════════════════════════════════════════ -->
+<div id="loginPage" class="pg on">
+  <div class="login-shell">
+    <div class="login-box">
+      <div class="login-ic">G+</div>
+      <p class="login-title">ระบบบันทึกคะแนน</p>
+      <p class="login-sub">โรงเรียนบ้านคลอง 14</p>
+      <div class="dots" id="pinDots">
+        <span class="dot"></span><span class="dot"></span>
+        <span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="pinpad">
+        <button class="pkey" onclick="ap('1')">1</button>
+        <button class="pkey" onclick="ap('2')">2</button>
+        <button class="pkey" onclick="ap('3')">3</button>
+        <button class="pkey" onclick="ap('4')">4</button>
+        <button class="pkey" onclick="ap('5')">5</button>
+        <button class="pkey" onclick="ap('6')">6</button>
+        <button class="pkey" onclick="ap('7')">7</button>
+        <button class="pkey" onclick="ap('8')">8</button>
+        <button class="pkey" onclick="ap('9')">9</button>
+        <button class="pkey fn" onclick="cp()">C</button>
+        <button class="pkey" onclick="ap('0')">0</button>
+        <button class="pkey fn" style="color:var(--red);" onclick="dp()">⌫</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     ADMIN PAGE
+     ════════════════════════════════════════════ -->
+<div id="adminPage" class="pg">
+  <div class="wrap">
+
+    <!-- Admin tab bar -->
+    <div class="admin-tabs" style="max-width:560px;">
+      <button id="adminTab_teachers" class="admin-tab on" onclick="switchAdminTab('teachers',this)">👨‍🏫 จัดการครู</button>
+      <button id="adminTab_subjects" class="admin-tab" onclick="switchAdminTab('subjects',this)">📚 รายวิชา</button>
+      <button id="adminTab_setup"    class="admin-tab" onclick="switchAdminTab('setup',this)">🚀 สร้างฐานข้อมูล</button>
+    </div>
+
+    <!-- Panel: Teachers -->
+    <div id="adminPanel_teachers">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:800;font-size:.93rem;">รายชื่อครูและวิชาที่รับผิดชอบ</div>
+            <div style="font-size:.74rem;color:var(--ink-500);margin-top:2px;">กดปุ่ม ⚙️ เพื่อกำหนดวิชาให้แต่ละครู</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="adm-table">
+            <thead><tr>
+              <th>ชื่อครู / ชั้น</th>
+              <th>รายวิชาที่รับผิดชอบ</th>
+              <th style="width:80px;text-align:center;">จัดการ</th>
+            </tr></thead>
+            <tbody id="tTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Subjects -->
+    <div id="adminPanel_subjects" style="display:none;">
+      <div class="card">
+        <div style="font-weight:800;font-size:.93rem;margin-bottom:4px;">จัดการรายวิชาแต่ละชั้นเรียน</div>
+        <div style="font-size:.74rem;color:var(--ink-500);margin-bottom:16px;">เพิ่ม / ลบ / เรียงลำดับวิชา — ทุกวิชามี 1 ชีต กรอกได้ทั้งเทอม 1 และ 2</div>
+
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:16px;">
+          <div class="sg">
+            <label>ปีการศึกษา (พ.ศ.)</label>
+            <input type="number" id="smYear" class="cfg-n" style="width:100px;" value="2568">
+          </div>
+          <div class="sg">
+            <label>ชั้นเรียน</label>
+            <select id="smClassSel" class="form-select" style="min-width:130px;" onchange="smChangeClass(this.value)"></select>
+          </div>
+          <button id="smSaveBtn" class="btn-save" style="opacity:.45;" onclick="SubjectMgr.save()">💾 บันทึก</button>
+        </div>
+
+        <div id="smSeqHint" style="display:none;background:#f0fdf4;border:1px solid var(--green-border);border-radius:8px;padding:9px 13px;font-size:.76rem;color:var(--green);margin-bottom:12px;"></div>
+        <div id="smSubjectList" style="margin-bottom:14px;min-height:40px;"></div>
+
+        <div style="background:var(--surface);border:1.5px dashed var(--line-strong);border-radius:10px;padding:14px;">
+          <div style="font-weight:800;font-size:.83rem;color:var(--ink-700);margin-bottom:10px;">➕ เพิ่มวิชาใหม่</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+            <div class="sg" style="flex:1;min-width:160px;">
+              <label>ชื่อวิชา</label>
+              <input type="text" id="smNewName" class="form-control"
+                style="min-height:38px;border:1px solid var(--line-strong);border-radius:6px;font-family:inherit;"
+                placeholder="เช่น ภาษาไทย, เทคโนโลยี"
+                onkeydown="if(event.key==='Enter') SubjectMgr.addSubject()">
+            </div>
+            <button class="btn-pri" onclick="SubjectMgr.addSubject()">➕ เพิ่ม</button>
+          </div>
+          <div style="font-size:.73rem;color:var(--ink-500);margin-top:8px;line-height:1.7;">
+            💡 ทุกวิชามี 1 ชีต กรอกคะแนนได้ทั้งเทอม 1 และ 2 ในชีตเดียว
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Setup -->
+    <div id="adminPanel_setup" style="display:none;">
+      <div class="card" style="max-width:520px;">
+        <div style="font-weight:800;font-size:.97rem;margin-bottom:6px;">สร้างฐานข้อมูลประจำปี</div>
+        <div style="font-size:.78rem;color:var(--ink-500);margin-bottom:16px;">สร้างไฟล์ Spreadsheet แต่ละชั้นเรียนอัตโนมัติ</div>
+        <div style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:8px;padding:12px;margin-bottom:18px;font-size:.79rem;color:var(--ink-700);line-height:1.7;">
+          ⚠️ กรุณาตั้งค่ารายวิชาในแท็บ <b>รายวิชา</b> ก่อน แล้วจึงสร้างฐานข้อมูล
+        </div>
+        <div class="sg" style="margin-bottom:16px;">
+          <label>ปีการศึกษา (พ.ศ.)</label>
+          <input type="number" id="setupYear" class="form-control" value="2568"
+            style="max-width:160px;font-size:1rem;min-height:44px;text-align:center;font-weight:700;border:1px solid var(--line-strong);border-radius:8px;font-family:inherit;">
+        </div>
+        <button class="btn-apply" style="margin-top:0;" onclick="adminSetup()">🚀 สร้างไฟล์ฐานข้อมูล</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchAdminTab(key, btn) {
+  ['teachers','subjects','setup'].forEach(k => {
+    const p = document.getElementById('adminPanel_' + k);
+    const t = document.getElementById('adminTab_' + k);
+    if (!p || !t) return;
+    p.style.display = k === key ? '' : 'none';
+    t.classList.toggle('on', k === key);
+  });
+  if (key === 'subjects' && typeof SubjectMgr !== 'undefined') SubjectMgr.init();
+}
+function toggleSubjectManager() { switchAdminTab('subjects', document.getElementById('adminTab_subjects')); }
+</script>
+
+<!-- Admin assign-subject modal -->
+<div id="subModal" class="modal-bg">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h6 style="margin:0;font-weight:800;font-size:.93rem;">📚 <span id="modalName"></span></h6>
+      <button class="btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;">
+      <label style="display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-500);margin-bottom:6px;">1. เลือกชั้นเรียน</label>
+      <select id="mClassSel" class="form-select mb-3" onchange="renderMCbs()"></select>
+      <label style="display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-500);margin-bottom:6px;">2. เลือกวิชา</label>
+      <div id="mCbs" class="d-flex flex-wrap gap-2"></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-500);margin-bottom:6px;">สรุปวิชาทั้งหมด</label>
+      <div id="mAssigned" style="min-height:56px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);"></div>
+    </div>
+    <button class="btn-save w-100" onclick="saveModal()">💾 บันทึก</button>
+  </div>
+</div>
+
+<!-- Hidden config inputs -->
+<div style="display:none;">
+  <input type="number" id="c_t1a" value="35"><input type="number" id="c_t1e" value="15">
+  <input type="number" id="c_t2a" value="35"><input type="number" id="c_t2e" value="15">
+</div>
+
+<!-- ════════════════════════════════════════════
+     GRADE PAGE
+     ════════════════════════════════════════════ -->
+<div id="gradePage" class="pg">
+  <div class="wrap">
+
+    <!-- Subject selector card -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="subj-selector" id="subjSelBar">
+        <div class="sg-pill">
+          <label>ปีการศึกษา</label>
+          <input type="number" id="gYear" style="width:96px;" value="2568">
+        </div>
+        <div class="sg-pill">
+          <label>ชั้นเรียน</label>
+          <select id="gClass" style="min-width:130px;" onchange="updateSubjDrop()"></select>
+        </div>
+        <div class="sg-pill" style="flex:1;min-width:200px;">
+          <label>รายวิชา</label>
+          <select id="gSubj" style="width:100%;" onchange="onSubjChange()">
+            <option value="">— เลือกรายวิชา —</option>
+          </select>
+        </div>
+      </div>
+      <!-- Lock bar -->
+      <div id="selectorLockBar" style="display:none;">
+        <div class="lock-bar">
+          <div class="lock-bar-info">
+            <div class="lock-chip"><span>📋</span><span id="lockBarSubj"></span></div>
+            <div class="lock-chip"><span>👥</span><span id="lockBarClass"></span></div>
+            <div class="lock-chip"><span>📅</span><span id="lockBarYear"></span></div>
+          </div>
+          <button onclick="unlockSubjectSelector()" style="padding:6px 14px;border:1px solid var(--amber-border);border-radius:6px;background:var(--amber-dim);color:var(--amber);font-size:.77rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='var(--amber-dim)'">
+            🔓 เปลี่ยนวิชา
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grade panel (shown after subject loaded) -->
+    <div id="gradePanel" style="display:none;">
+
+      <!-- Subject header -->
+      <div class="subj-header">
+        <div class="subj-title">
+          <div class="subj-title-icon">📋</div>
+          <div>
+            <div class="subj-title-text" id="lblSubj">—</div>
+            <div class="subj-title-sub">ชั้น <span id="lblClass"></span></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label id="toggleRWrapper" style="display:none;align-items:center;gap:6px;padding:5px 12px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:999px;cursor:pointer;margin:0;font-size:.76rem;font-weight:700;color:var(--amber);">
+            <input type="checkbox" id="toggleR" onchange="toggleIgnoreR()" style="width:13px;height:13px;cursor:pointer;accent-color:var(--amber);">
+            ซ่อน "ร"
+          </label>
+        </div>
+      </div>
+
+      <!-- Grade tabs (in body) -->
+      <div class="grade-tabs-bar" id="gradeTabsBar">
+        <button type="button" class="gtab active" id="gtabScoreMain" onclick="showScoreMain(this)"><span>📊</span> คะแนน</button>
+        <button type="button" class="gtab" onclick="switchGTab('courseInfo',this)"><span>📝</span> รายวิชา</button>
+        <button type="button" class="gtab" onclick="switchGTab('holistic',this)"><span>🌟</span> ประเมิน</button>
+        <button type="button" class="gtab" onclick="switchGTab('activities',this)"><span>🎯</span> กิจกรรม</button>
+        <button type="button" class="gtab" onclick="switchGTab('club',this)"><span>⭐</span> ชุมนุม</button>
+        <button type="button" class="gtab" onclick="switchGTab('homeroom',this)"><span>🏠</span> ประจำชั้น</button>
+        <button type="button" class="gtab" onclick="switchGTab('allGrades',this);_initAllGradesTab();"><span>📈</span> สรุปทุกชั้น</button>
+        <button type="button" class="gtab" onclick="switchGTab('schoolProfile',this)"><span>🏫</span> โรงเรียน</button>
+      </div>
+
+      <!-- Score main area -->
+      <div id="scoreMainArea">
+        <!-- Term tabs + toggle -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <div class="term-tabs">
+            <button id="termTab1"
+              onclick="switchGradeTerm(1)"
+              style="padding:6px 18px;border-radius:6px;border:none;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;transition:all .15s;min-height:32px;white-space:nowrap;background:var(--band-t1);color:#fff;">
+              ภาคเรียน 1
+            </button>
+            <button id="termTab2"
+              onclick="switchGradeTerm(2)"
+              style="padding:6px 18px;border-radius:6px;border:none;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;transition:all .15s;min-height:32px;white-space:nowrap;background:transparent;color:var(--ink-500);">
+              ภาคเรียน 2
+            </button>
+            <button id="termTabYear"
+              onclick="switchGradeTerm(0)"
+              style="padding:6px 18px;border-radius:6px;border:none;font-family:inherit;font-weight:700;font-size:.83rem;cursor:pointer;transition:all .15s;min-height:32px;white-space:nowrap;background:transparent;color:var(--ink-500);">
+              ทั้งปี
+            </button>
+          </div>
+          <div id="rPreviewWrap" style="display:none;">
+            <div class="toggle-wrap">
+              <span class="toggle-label">เกรดจริง</span>
+              <!-- rPreviewSwitch และ rPreviewThumb ต้องมีเพื่อให้ grade.js/admin.js ทำงานได้ -->
+              <div id="rPreviewSwitch" onclick="toggleRPreview()"
+                title="เปิดเพื่อดูเกรดจริง (ซ่อน ร ทั้งหมด)"
+                style="position:relative;width:38px;height:20px;border-radius:10px;background:#cbd5e1;cursor:pointer;transition:background .2s;flex-shrink:0;">
+                <div id="rPreviewThumb"
+                  style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25);"></div>
+              </div>
+              <span id="rPreviewLabel" style="font-size:.75rem;font-weight:700;color:var(--ink-500);min-width:24px;">ปิด</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unit tabs -->
+        <div id="unitTabsRow" style="margin-bottom:10px;"></div>
+
+        <!-- Table -->
+        <div class="card" style="padding:10px;">
+          <div class="tbl-wrap">
+            <table class="gtbl" id="gtbl">
+              <thead id="gtHead"></thead>
+              <tbody id="gtBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Floating save -->
+        <div class="float-save">
+          <button class="float-save-btn" id="floatSaveBtn" onclick="saveGrades()">
+            <span>💾</span><span id="floatSaveTxt">บันทึกเทอม 1</span>
+          </button>
+        </div>
+        <!-- compat hidden save area -->
+        <div id="saveBtnArea" style="display:none;">
+          <button class="btn-save w-100" onclick="saveGrades()">💾 บันทึก</button>
+        </div>
+      </div><!-- /scoreMainArea -->
+
+      <!-- Settings panels (managed by grade.js) -->
+      <div id="settingsContentArea" style="display:none;">
+        <div class="settings-card">
+
+<!-- ── courseInfo panel ── -->
+<div class="settings-panel" id="panel_courseInfo">
+  <div class="subject-overview-card card mb-3">
+    <div class="subject-overview-grid">
+      <div class="overview-item"><div class="overview-label">รายวิชา</div><div class="overview-value" id="ov_subject_name">-</div></div>
+      <div class="overview-item"><div class="overview-label">รหัสวิชา</div><div class="overview-value" id="ov_subject_code">-</div></div>
+      <div class="overview-item"><div class="overview-label">ครูผู้สอน</div><div class="overview-value" id="ov_teacher_name">-</div></div>
+      <div class="overview-item"><div class="overview-label">เวลาเรียน</div><div class="overview-value" id="ov_total_hours">0</div></div>
+      <div class="overview-item"><div class="overview-label">ตัวชี้วัด</div><div class="overview-value" id="ov_indicator_count">0</div></div>
+      <div class="overview-item"><div class="overview-label">หน่วยการเรียน</div><div class="overview-value" id="ov_unit_count">0</div></div>
+    </div>
+  </div>
+  <div class="course-subtabs">
+    <button class="course-subtab on" id="courseTabBasicBtn" onclick="switchCourseSubTab('basic',this)">ข้อมูลพื้นฐาน</button>
+    <button class="course-subtab" id="courseTabDescBtn" onclick="switchCourseSubTab('desc',this)">คำอธิบาย/ตัวชี้วัด</button>
+    <button class="course-subtab" id="courseTabScheduleBtn" onclick="switchCourseSubTab('schedule',this)">เวลาเรียน</button>
+    <button class="course-subtab" id="courseTabUnitsBtn" onclick="switchCourseSubTab('units',this)">หน่วยการเรียนรู้</button>
+  </div>
+  <div id="coursePanel_basic" class="course-subpanel">
+    <div class="card mb-3" style="border:1px solid var(--line);">
+      <div class="subject-section-title">1) ข้อมูลพื้นฐานรายวิชา</div>
+      <div class="cfg-row mb-3">
+        <div class="cfg-block" style="flex:1;min-width:180px;"><label class="cfg-ttl">กลุ่มสาระการเรียนรู้</label><input type="text" id="ci_learning_area" class="cfg-n" style="width:100%;text-align:left;" placeholder="เช่น ภาษาไทย / คณิตศาสตร์"></div>
+        <div class="cfg-block" style="flex:1.2;min-width:220px;"><label class="cfg-ttl">ชื่อวิชา</label><input type="text" id="ci_name" class="cfg-n" style="width:100%;text-align:left;" placeholder="เช่น ภาษาไทยพื้นฐาน"></div>
+      </div>
+      <div class="cfg-row mb-3">
+        <div class="cfg-block" style="flex:1;min-width:140px;"><label class="cfg-ttl">รหัสวิชา</label><input type="text" id="ci_code" class="cfg-n" style="width:100%;text-align:left;" placeholder="เช่น ท21101"></div>
+        <div class="cfg-block" style="flex:1;min-width:160px;"><label class="cfg-ttl">ประเภทวิชา</label><select id="ci_type" class="cfg-n" style="width:100%;text-align:left;"><option value="รายวิชาพื้นฐาน">รายวิชาพื้นฐาน</option><option value="รายวิชาเพิ่มเติม">รายวิชาเพิ่มเติม</option><option value="กิจกรรมพัฒนาผู้เรียน">กิจกรรมพัฒนาผู้เรียน</option></select></div>
+        <div class="cfg-block" style="flex:0.7;min-width:100px;"><label class="cfg-ttl">หน่วยกิต</label><input type="number" step="0.5" id="ci_credit" class="cfg-n" style="width:100%;" placeholder="1.0"></div>
+      </div>
+      <div class="cfg-row mb-3">
+        <div class="cfg-block" style="flex:1;min-width:220px;"><label class="cfg-ttl">ชื่อครูผู้สอน</label><input type="text" id="ci_teacher_name" class="cfg-n" style="width:100%;text-align:left;"></div>
+        <div class="cfg-block" style="flex:1;min-width:220px;"><label class="cfg-ttl">หัวหน้ากลุ่มสาระ</label><input type="text" id="ci_group_head_name" class="cfg-n" style="width:100%;text-align:left;"></div>
+      </div>
+      <div class="subject-actions">
+        <button class="btn-save" onclick="saveCourseMetaOnly()" style="min-width:200px;">💾 บันทึกข้อมูลพื้นฐาน</button>
+        <button class="btn-next" onclick="goCourseSubTab('desc')">ถัดไป →</button>
+      </div>
+    </div>
+  </div>
+  <div id="coursePanel_desc" class="course-subpanel" style="display:none;">
+    <div class="card mb-3" style="border:1px solid var(--line);">
+      <div class="subject-section-title">2) คำอธิบายและตัวชี้วัด</div>
+      <div class="cfg-row mb-3">
+        <div class="cfg-block" style="flex:1;min-width:280px;"><label class="cfg-ttl">คำอธิบายรายวิชา</label><textarea id="ci_description" class="cfg-n" style="width:100%;text-align:left;min-height:200px;resize:vertical;line-height:1.6;padding:10px;" placeholder="ใส่คำอธิบายรายวิชา…"></textarea></div>
+      </div>
+      <div class="cfg-row mb-3">
+        <div class="cfg-block" style="flex:1;min-width:280px;"><label class="cfg-ttl">ตัวชี้วัดระหว่างทาง</label><textarea id="ci_indicators_formative" class="cfg-n" style="width:100%;text-align:left;min-height:200px;resize:vertical;line-height:1.6;padding:10px;" placeholder="1 บรรทัด / 1 ตัวชี้วัด&#10;เช่น ศ 1.1 ป.1/1 …"></textarea></div>
+        <div class="cfg-block" style="flex:1;min-width:280px;"><label class="cfg-ttl">ตัวชี้วัดปลายทาง</label><textarea id="ci_indicators_summative" class="cfg-n" style="width:100%;text-align:left;min-height:200px;resize:vertical;line-height:1.6;padding:10px;" placeholder="1 บรรทัด / 1 ตัวชี้วัด"></textarea></div>
+      </div>
+      <div class="subject-actions">
+        <button class="btn-save" onclick="saveCourseMetaOnly()" style="min-width:200px;">💾 บันทึก</button>
+        <button class="btn-next" onclick="goCourseSubTab('schedule')">ถัดไป →</button>
+      </div>
+    </div>
+  </div>
+  <div id="coursePanel_schedule" class="course-subpanel" style="display:none;">
+    <div class="card mb-3" style="border:1px solid var(--line);">
+      <div class="subject-section-title">3) เวลาเรียน (ปพ.5)</div>
+      <div class="schedule-layout">
+        <div>
+          <label class="cfg-ttl" style="display:block;margin-bottom:8px;">ตารางเรียนรายสัปดาห์</label>
+          <div class="schedule-day-grid mb-3">
+            <div class="schedule-day-box"><small style="display:block;color:var(--ink-500);margin-bottom:5px;font-size:.7rem;">จ.</small><input type="number" id="sch_mon" class="cfg-n" style="width:100%;" value="0" min="0" oninput="calcTotalHours();refreshCourseOverview()"></div>
+            <div class="schedule-day-box"><small style="display:block;color:var(--ink-500);margin-bottom:5px;font-size:.7rem;">อ.</small><input type="number" id="sch_tue" class="cfg-n" style="width:100%;" value="0" min="0" oninput="calcTotalHours();refreshCourseOverview()"></div>
+            <div class="schedule-day-box"><small style="display:block;color:var(--ink-500);margin-bottom:5px;font-size:.7rem;">พ.</small><input type="number" id="sch_wed" class="cfg-n" style="width:100%;" value="0" min="0" oninput="calcTotalHours();refreshCourseOverview()"></div>
+            <div class="schedule-day-box"><small style="display:block;color:var(--ink-500);margin-bottom:5px;font-size:.7rem;">พฤ.</small><input type="number" id="sch_thu" class="cfg-n" style="width:100%;" value="0" min="0" oninput="calcTotalHours();refreshCourseOverview()"></div>
+            <div class="schedule-day-box"><small style="display:block;color:var(--ink-500);margin-bottom:5px;font-size:.7rem;">ศ.</small><input type="number" id="sch_fri" class="cfg-n" style="width:100%;" value="0" min="0" oninput="calcTotalHours();refreshCourseOverview()"></div>
+          </div>
+        </div>
+        <div>
+          <label class="cfg-ttl" style="display:block;margin-bottom:8px;">ค่าปรับเวลา</label>
+          <input type="number" id="ci_manual_adjust" class="cfg-n" style="width:100%;" value="0" oninput="calcTotalHours();refreshCourseOverview()">
+          <div class="schedule-help">ใช้กรณีสอนชดเชย / สลับคาบ</div>
+        </div>
+      </div>
+      <div class="hours-summary-box">⏱ เวลาเรียนรวม: <span id="ci_total_hours" style="font-size:1rem;font-weight:900;">0</span> คาบ/ชั่วโมง</div>
+      <div class="subject-actions">
+        <button class="btn-save" onclick="saveScheduleOnly()" style="min-width:200px;">💾 บันทึกเวลาเรียน</button>
+        <button class="btn-next" onclick="goCourseSubTab('units')">ถัดไป →</button>
+      </div>
+    </div>
+  </div>
+  <div id="coursePanel_units" class="course-subpanel" style="display:none;">
+    <div class="card mb-0" style="border:1px solid var(--line);">
+      <div class="subject-section-title">4) หน่วยการเรียนรู้และสัดส่วนคะแนน</div>
+      <div class="units-layout">
+        <div class="units-side">
+          <div class="card">
+            <div class="mini-title">สรุปคะแนน</div>
+            <div class="score-mini-list">
+              <div class="score-mini-item" style="background:var(--band-t1-light);"><span style="color:var(--band-t1);font-weight:800;">เทอม 1 เก็บ</span><span class="val" id="show_t1_keep">0</span></div>
+              <div class="score-mini-item"><span>เทอม 1 สอบ</span><span class="val" id="show_t1_exam">0</span></div>
+              <div class="score-mini-item" style="border-top:1px solid var(--line);font-weight:700;"><span>เทอม 1 รวม</span><span class="val" id="show_t1_total">0</span></div>
+              <div id="t2AutoBlock" style="margin-top:8px;">
+                <div class="score-mini-item" style="background:var(--band-t2-light);"><span style="color:var(--band-t2);font-weight:800;">เทอม 2 เก็บ</span><span class="val" id="show_t2_keep">0</span></div>
+                <div class="score-mini-item"><span>เทอม 2 สอบ</span><span class="val" id="show_t2_exam">0</span></div>
+                <div class="score-mini-item" style="border-top:1px solid var(--line);font-weight:700;"><span>เทอม 2 รวม</span><span class="val" id="show_t2_total">0</span></div>
+              </div>
+            </div>
+            <div class="unit-side-note" style="margin-top:8px;">เก็บ = รวมทุกหน่วย<br>สอบ = ตั้งในแท็บสอบ</div>
+          </div>
+          <div class="card">
+            <div class="mini-title">แนวทาง</div>
+            <div class="unit-side-note">1) ตั้งชื่อหน่วยและคะแนนเต็ม<br>2) เพิ่มงานย่อย<br>3) กดอัปเดตตาราง</div>
+          </div>
+        </div>
+        <div class="units-main">
+          <div class="card">
+            <div class="ttabs mb-0">
+              <button class="ttab on" onclick="switchTerm(1,this)">เทอม 1</button>
+              <button class="ttab" id="tabTerm2Btn" onclick="switchTerm(2,this)">เทอม 2</button>
+            </div>
+          </div>
+          <div id="subPanel_1"><div class="sub-list" id="subList_1"></div><button type="button" class="btn-apply mt-2" onclick="addSub(1)">➕ เพิ่มหน่วยการเรียนรู้ เทอม 1</button></div>
+          <div id="subPanel_2" style="display:none;"><div class="sub-list" id="subList_2"></div><button type="button" class="btn-apply mt-2" onclick="addSub(2)" style="background:var(--band-t2);">➕ เพิ่มหน่วยการเรียนรู้ เทอม 2</button></div>
+          <button class="btn-apply mt-4" onclick="applySubConfig()" style="background:var(--ink-700);">🔄 อัปเดตตาราง</button>
+          <button class="btn-save w-100 mt-2" onclick="saveScoreConfigOnly()">💾 บันทึกการตั้งค่าคะแนน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /panel_courseInfo -->
+
+<!-- ── schoolProfile panel ── -->
+<div class="settings-panel" id="panel_schoolProfile">
+  <div class="card mb-0" style="border:1px solid var(--line);">
+    <div style="font-weight:800;font-size:.9rem;margin-bottom:14px;">ข้อมูลโรงเรียน</div>
+    <div class="cfg-row mb-3"><div class="cfg-block" style="flex:1;min-width:260px;"><label class="cfg-ttl">ชื่อโรงเรียน</label><input type="text" id="sp_school_name" class="cfg-n" style="width:100%;text-align:left;"></div></div>
+    <div class="cfg-row mb-3">
+      <div class="cfg-block" style="flex:1;min-width:220px;"><label class="cfg-ttl">ชื่อผู้อำนวยการ</label><input type="text" id="sp_director_name" class="cfg-n" style="width:100%;text-align:left;"></div>
+      <div class="cfg-block" style="flex:1;min-width:220px;"><label class="cfg-ttl">ตำแหน่งผู้อำนวยการ</label><input type="text" id="sp_director_position" class="cfg-n" style="width:100%;text-align:left;" value="ผู้อำนวยการโรงเรียน"></div>
+    </div>
+    <div class="cfg-row mb-3">
+      <div class="cfg-block" style="flex:1;min-width:220px;"><label class="cfg-ttl">ชื่อหัวหน้าวิชาการ</label><input type="text" id="sp_academic_head_name" class="cfg-n" style="width:100%;text-align:left;"></div>
+      <div class="cfg-block" style="flex:1;min-width:220px;"><label class="cfg-ttl">ตำแหน่งหัวหน้าวิชาการ</label><input type="text" id="sp_academic_head_position" class="cfg-n" style="width:100%;text-align:left;" value="หัวหน้าวิชาการ"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button class="btn-save" style="min-width:220px;" onclick="saveSchoolProfile()">💾 บันทึกข้อมูลโรงเรียน</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── allGrades panel ── -->
+<div class="settings-panel" id="panel_allGrades">
+  <div class="card mb-0" style="border:1px solid var(--line);">
+    <div style="font-weight:800;font-size:.93rem;margin-bottom:14px;">📊 สรุปเกรดและ Export</div>
+    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:16px;">
+      <div class="sg"><label>ปีการศึกษา</label><input type="number" id="ag_year" class="cfg-n" style="width:96px;" value="2568"></div>
+      <div class="sg"><label>ภาคเรียน</label><select id="ag_term" class="form-select" style="min-width:150px;"><option value="term1">ภาคเรียนที่ 1</option><option value="term2">ภาคเรียนที่ 2</option><option value="year">ทั้งปี</option></select></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:220px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
+        <div style="font-weight:700;font-size:.84rem;color:#1e40af;margin-bottom:6px;">📊 ดูสรุปเกรดออนไลน์</div>
+        <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:10px;">เปิดหน้าต่างใหม่แสดงตารางเกรดทุกชั้น</div>
+        <button class="btn-apply" style="margin-top:0;min-height:36px;background:var(--band-t1);" onclick="openAllGradesSummary()">📊 ดูทุกชั้น</button>
+      </div>
+      <div style="flex:1;min-width:220px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:14px;">
+        <div style="font-weight:700;font-size:.84rem;color:var(--green);margin-bottom:6px;">📥 Export เกรด CSV</div>
+        <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:8px;">เลือกชั้นที่ต้องการ แล้วดาวน์โหลด</div>
+        <div class="sg" style="margin-bottom:10px;"><label>ชั้นเรียน</label><select id="ag_export_cls" class="form-select" style="width:100%;" onchange="_onExportClsChange(this.value)"></select></div>
+        <button class="btn-save" style="min-height:36px;width:100%;" onclick="exportGradeCSV()">📥 Export CSV</button>
+      </div>
+    </div>
+  </div>
+  <script>
+  const _MATH_CLS=['ม.1','ม.2','ม.3'];
+  function _isMathClass(c){return _MATH_CLS.some(m=>String(c).startsWith(m));}
+  function _onExportClsChange(c){const s=document.getElementById('ag_term');if(!s)return;s.innerHTML=_isMathClass(c)?'<option value="term1">ภาคเรียนที่ 1</option><option value="term2">ภาคเรียนที่ 2</option>':'<option value="year">ทั้งปี</option>';}
+  function _initAllGradesTab(){const s=document.getElementById('ag_export_cls');if(!s)return;const cls=(typeof CONFIG!=='undefined'&&CONFIG.ALL_CLS)?CONFIG.ALL_CLS:[];s.innerHTML=cls.map(c=>`<option value="${c}">${c}</option>`).join('');if(cls.length)_onExportClsChange(cls[0]);}
+  </script>
+</div>
+
+<!-- ── holistic panel ── -->
+<div class="settings-panel" id="panel_holistic">
+  <div class="ttabs mb-3">
+    <button class="ttab on" type="button" onclick="switchHolisticTab('subject',this)">รายวิชา</button>
+    <button class="ttab" type="button" onclick="switchHolisticTab('homeroom',this)">ประจำชั้น</button>
+  </div>
+  <div id="holisticSubjectPanel">
+    <div id="assContainer"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+    <div style="text-align:right;margin-top:10px;"><button class="btn-pri" type="button" onclick="printHolisticReport('subject')">🖨️ พิมพ์รายวิชา</button></div>
+    <button class="btn-save mt-3 w-100" onclick="saveHolisticData('subject')">💾 บันทึกผลประเมินรายวิชา</button>
+  </div>
+  <div id="holisticHomeroomPanel" style="display:none;">
+    <div id="hrAssContainer"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+    <div style="text-align:right;margin-top:10px;"><button class="btn-pri" type="button" onclick="printHolisticReport('homeroom')">🖨️ พิมพ์ประจำชั้น</button></div>
+    <button class="btn-save mt-3 w-100" onclick="saveHolisticData('homeroom')">💾 บันทึกผลประเมินประจำชั้น</button>
+  </div>
+</div>
+
+<!-- ── rtw panel ── -->
+<div class="settings-panel" id="panel_rtw">
+  <div class="card mb-3" style="background:#eff6ff;border:1px solid #bfdbfe;">
+    <div style="font-weight:800;font-size:.88rem;color:var(--band-t1);margin-bottom:10px;">📊 ประเมินความสามารถในการอ่าน คิดวิเคราะห์ และเขียน (100 คะแนน)</div>
+    <div id="rtwIndicatorLabel" style="padding:8px;border-radius:6px;background:#fff;font-size:.78rem;border:1px solid #dbeafe;margin-bottom:10px;"></div>
+    <div id="rtwContainer"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+      <div style="font-size:.73rem;color:var(--ink-500);">ดีเยี่ยม 86–100 · ดี 70–85 · ผ่าน 50–69 · ไม่ผ่าน 0–49</div>
+      <button class="btn-pri" type="button" onclick="printRTWReport()">🖨️ พิมพ์รายงาน</button>
+    </div>
+    <button class="btn-save mt-3 w-100" style="background:var(--band-t1);" onclick="saveRTWData()">💾 บันทึกผลการประเมิน</button>
+  </div>
+</div>
+
+<!-- ── guidance panel ── -->
+<div class="settings-panel" id="panel_guidance">
+  <div class="ttabs mb-3">
+    <button class="ttab on" type="button" onclick="switchGuidanceTab('1',this)">เทอม 1</button>
+    <button class="ttab" type="button" onclick="switchGuidanceTab('2',this)">เทอม 2</button>
+  </div>
+  <div id="guidanceTerm1Panel">
+    <div class="card mb-3" style="background:#fdf4ff;border:1px solid #e9d5ff;">
+      <div style="font-weight:800;font-size:.88rem;color:#6b21a8;margin-bottom:14px;">🧭 บันทึกกิจกรรมแนะแนว — ภาคเรียนที่ 1</div>
+      <div id="guidanceContainer1"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+      <div id="photoGrid_guidance_1"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <div style="font-size:.77rem;color:var(--ink-500);">เกณฑ์: เวลาเรียน ≥ 80% = "ผ่าน"</div>
+        <button class="btn-pri" type="button" onclick="printGuidanceReport('1')" style="background:#7c3aed;">🖨️ พิมพ์รายงาน</button>
+      </div>
+      <button class="btn-save mt-3 w-100" style="background:#7c3aed;" onclick="saveGuidanceData('1')">💾 บันทึกกิจกรรมแนะแนว เทอม 1</button>
+    </div>
+  </div>
+  <div id="guidanceTerm2Panel" style="display:none;">
+    <div class="card mb-3" style="background:#fdf4ff;border:1px solid #e9d5ff;">
+      <div style="font-weight:800;font-size:.88rem;color:#6b21a8;margin-bottom:14px;">🧭 บันทึกกิจกรรมแนะแนว — ภาคเรียนที่ 2</div>
+      <div id="guidanceContainer2"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+      <div id="photoGrid_guidance_2"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <div style="font-size:.77rem;color:var(--ink-500);">เกณฑ์: เวลาเรียน ≥ 80% = "ผ่าน"</div>
+        <button class="btn-pri" type="button" onclick="printGuidanceReport('2')" style="background:#7c3aed;">🖨️ พิมพ์รายงาน</button>
+      </div>
+      <button class="btn-save mt-3 w-100" style="background:#7c3aed;" onclick="saveGuidanceData('2')">💾 บันทึกกิจกรรมแนะแนว เทอม 2</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── scout panel ── -->
+<div class="settings-panel" id="panel_scout">
+  <div class="ttabs mb-3">
+    <button class="ttab on" type="button" onclick="switchScoutTab('1',this)">ภาคเรียนที่ 1</button>
+    <button class="ttab" type="button" onclick="switchScoutTab('2',this)">ภาคเรียนที่ 2</button>
+  </div>
+  <div id="scoutTerm1Panel">
+    <div class="card mb-3" style="background:var(--green-dim);border:1px solid var(--green-border);">
+      <div style="font-weight:800;font-size:.88rem;color:var(--green);margin-bottom:14px;">⚜️ บันทึกกิจกรรมลูกเสือ-เนตรนารี — ภาคเรียนที่ 1</div>
+      <div id="scoutContainer1"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+      <div id="photoGrid_scout_1"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <div style="font-size:.77rem;color:var(--ink-500);">เกณฑ์: เวลาเรียน ≥ 80% = "ผ่าน"</div>
+        <button class="btn-save" type="button" onclick="printScoutReport()">🖨️ พิมพ์รายงาน</button>
+      </div>
+      <button class="btn-save mt-3 w-100" onclick="saveScoutData('1')">💾 บันทึกกิจกรรมลูกเสือ เทอม 1</button>
+    </div>
+  </div>
+  <div id="scoutTerm2Panel" style="display:none;">
+    <div class="card mb-3" style="background:var(--green-dim);border:1px solid var(--green-border);">
+      <div style="font-weight:800;font-size:.88rem;color:var(--green);margin-bottom:14px;">⚜️ บันทึกกิจกรรมลูกเสือ-เนตรนารี — ภาคเรียนที่ 2</div>
+      <div id="scoutContainer2"><div style="text-align:center;color:var(--ink-500);padding:24px;">กรุณาโหลดรายชื่อผู้เรียน</div></div>
+      <div id="photoGrid_scout_2"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <div style="font-size:.77rem;color:var(--ink-500);">เกณฑ์: เวลาเรียน ≥ 80% = "ผ่าน"</div>
+        <button class="btn-save" type="button" onclick="printScoutReport()">🖨️ พิมพ์รายงาน</button>
+      </div>
+      <button class="btn-save mt-3 w-100" onclick="saveScoutData('2')">💾 บันทึกกิจกรรมลูกเสือ เทอม 2</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── activities panel (aggregator) ── -->
+<div class="settings-panel" id="panel_activities">
+  <div class="ttabs mb-3">
+    <button type="button" id="actTab_rtw"      class="ttab on" onclick="switchActivityTab('rtw',this)">📖 อ่าน/คิด/เขียน</button>
+    <button type="button" id="actTab_guidance"  class="ttab"    onclick="switchActivityTab('guidance',this)">🧭 แนะแนว</button>
+    <button type="button" id="actTab_scout"     class="ttab"    onclick="switchActivityTab('scout',this)">⚜️ ลูกเสือ</button>
+  </div>
+  <div id="actPanel_rtw"></div>
+  <div id="actPanel_guidance" style="display:none;"></div>
+  <div id="actPanel_scout"    style="display:none;"></div>
+</div>
+
+<!-- ── club panel ── -->
+<div class="settings-panel" id="panel_club">
+  <div class="ttabs mb-3">
+    <button class="ttab on" type="button" onclick="switchClubTab('1',this)">ภาคเรียนที่ 1</button>
+    <button class="ttab" type="button" onclick="switchClubTab('2',this)">ภาคเรียนที่ 2</button>
+  </div>
+  <div id="clubContainer"><div style="text-align:center;color:var(--ink-500);padding:24px;font-size:.84rem;">กรุณาโหลดรายชื่อผู้เรียนก่อน</div></div>
+  <div id="photoGrid_club_1"></div>
+</div>
+
+<!-- ── homeroom panel ── -->
+<div class="settings-panel" id="panel_homeroom">
+  <div class="card mb-3" style="border:1px solid var(--line);">
+    <div style="font-weight:800;font-size:.93rem;margin-bottom:16px;">🏠 เอกสารและรายงานประจำชั้น</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;">
+      <div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:16px;">
+        <div style="font-weight:700;font-size:.84rem;color:var(--green);margin-bottom:5px;">📋 ปพ.5 รายวิชา</div>
+        <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:12px;">แบบบันทึกผลการเรียนรายวิชา</div>
+        <button class="btn-save w-100" style="min-height:34px;" onclick="printPp5SubjectPDF()">🖨️ พิมพ์ ปพ.5</button>
+      </div>
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px;">
+        <div style="font-weight:700;font-size:.84rem;color:var(--band-t1);margin-bottom:5px;">📊 สรุปเกรด / ปพ.6</div>
+        <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:10px;">สรุปผลการเรียนรายภาคหรือรายปี</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button id="btnPp6T1"   class="btn-pri" style="background:var(--band-t2);min-height:34px;" onclick="printClassPDF('term1')">🖨️ ปพ.6 เทอม 1</button>
+          <button id="btnPp6Year" class="btn-pri" style="background:var(--band-t1);min-height:34px;" onclick="printClassPDF('year')">🖨️ ปพ.6 ทั้งปี</button>
+          <button id="btnPp6Sem"  class="btn-pri" style="display:none;background:var(--accent);min-height:34px;" onclick="printClassPDF('term1')">🖨️ ปพ.6</button>
+          <button class="btn-pri" style="background:var(--ink-700);min-height:34px;" onclick="openSummaryModeModal()">📊 สรุปเกรด (ออนไลน์)</button>
+        </div>
+      </div>
+      <div style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:10px;padding:16px;">
+        <div style="font-weight:700;font-size:.84rem;color:var(--amber);margin-bottom:5px;">📥 Export ข้อมูล</div>
+        <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:12px;">ส่งออกคะแนนทั้งหมดเป็น Excel</div>
+        <button class="btn-save w-100" style="min-height:34px;" onclick="exportSummaryCSV()">📥 Export Excel</button>
+      </div>
+    </div>
+  </div>
+  <div class="card mb-3" style="border:1px solid var(--line);">
+    <div style="font-weight:800;font-size:.9rem;margin-bottom:12px;">⭐ ชุมนุมของนักเรียนในชั้น</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="sg"><label>ภาคเรียน</label><select id="homeroomClubTerm" class="cfg-n" style="width:130px;"><option value="1">ภาคเรียน 1</option><option value="2">ภาคเรียน 2</option></select></div>
+      <button class="btn-pri" style="min-height:36px;" onclick="loadHomeroomClubView()">🔄 โหลด</button>
+      <button class="btn-pri" style="background:var(--band-t2);min-height:36px;" onclick="printClubReport(document.getElementById('homeroomClubTerm').value)">🖨️ พิมพ์</button>
+    </div>
+    <div id="homeroomClubTable"><div style="font-size:.82rem;color:var(--ink-500);">กดโหลดเพื่อแสดงชุมนุมของนักเรียน</div></div>
+  </div>
+</div>
+
+        </div><!-- /settings-card -->
+      </div><!-- /settingsContentArea -->
+
+    </div><!-- /gradePanel -->
+  </div><!-- /wrap -->
+</div><!-- /gradePage -->
+
+<!-- ── Summary mode modal ── -->
+<div id="summaryModeModal" class="modal-bg">
+  <div class="modal-box" style="max-width:400px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h6 style="margin:0;font-weight:800;font-size:.93rem;">📊 เลือกรูปแบบสรุปเกรด</h6>
+      <button class="btn-sm" onclick="closeSummaryModeModal()">✕</button>
+    </div>
+    <div style="font-size:.83rem;color:var(--ink-500);margin-bottom:16px;">เลือกพิมพ์แบบ เทอม 1, เทอม 2 หรือทั้งปี</div>
+    <div style="display:grid;gap:8px;">
+      <button class="btn-pri" style="background:var(--band-t2);"  onclick="printSummaryPDF('term1')">🟣 ดูเทอม 1</button>
+      <button class="btn-save"                                     onclick="printSummaryPDF('term2')">🟢 ดูเทอม 2</button>
+      <button class="btn-pri" style="background:var(--band-t1);"  onclick="printSummaryPDF('year')">🔵 ดูทั้งปี</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CSV sort modal ── -->
+<div id="csvSortModal" class="modal-bg" style="display:none;">
+  <div class="modal-box" style="max-width:460px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-weight:800;font-size:.93rem;">🔀 เรียงลำดับวิชาก่อน Export</div>
+      <button class="btn-sm" onclick="document.getElementById('csvSortModal').style.display='none'">✕</button>
+    </div>
+    <div style="font-size:.78rem;color:var(--ink-500);margin-bottom:12px;">ลากวิชาเพื่อเรียงลำดับ หรือใช้ปุ่ม ▲ ▼</div>
+    <div id="csvSortList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn-sm" onclick="document.getElementById('csvSortModal').style.display='none'">ยกเลิก</button>
+      <button class="btn-save" onclick="_doExportCSV()">📥 ดาวน์โหลด CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Hidden config compat inputs ── -->
+<div style="display:none;">
+  <!-- dummy panels for JS compat (panel_rtw, panel_guidance, panel_scout source) -->
+  <div id="panel_rtw_src"></div>
+  <div id="panel_guidance_src"></div>
+  <div id="panel_scout_src"></div>
+</div>
+
+<!-- ══ Scripts ══════════════════════════════ -->
+<script src="activity-photos.js"></script>
+<script>
+window.addEventListener('load',function(){
+  if(typeof _renderPhotoGrid!=='function')return;
+  [['guidance','แนะแนว'],['scout','ลูกเสือ'],['club','ชุมนุม']].forEach(function(p){
+    ['1','2'].forEach(function(t){
+      var el=document.getElementById('photoGrid_'+p[0]+'_'+t);
+      if(el&&!el.innerHTML.trim())_renderPhotoGrid(el,p[1],t,[],false);
+    });
+  });
+});
+</script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+<script src="subject-manager.js"></script>
+<script src="grade.js"></script>
+<script src="holistic.js"></script>
+<script src="print.js"></script>
+<script src="rtw.js"></script>
+<script src="guidance.js"></script>
+<script src="scout.js"></script>
+<script src="club.js"></script>
+<script>
+/* ── Grade tab switching ── */
+function switchGTab(tid,btn){
+  if(typeof switchSettingsTab==='function')switchSettingsTab(tid,btn);
+  document.querySelectorAll('.gtab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(tid==='activities')_syncActivityPanel('rtw');
+}
+function switchActivityTab(key,btn){
+  ['rtw','guidance','scout'].forEach(k=>{
+    const p=document.getElementById('actPanel_'+k);
+    const t=document.getElementById('actTab_'+k);
+    if(p)p.style.display=k===key?'':'none';
+    if(t)t.classList.toggle('on',k===key);
+  });
+  _syncActivityPanel(key);
+  if(typeof loadActivityPhotos==='function'){
+    if(key==='guidance'){loadActivityPhotos('แนะแนว','1');loadActivityPhotos('แนะแนว','2');}
+    if(key==='scout'){loadActivityPhotos('ลูกเสือ','1');loadActivityPhotos('ลูกเสือ','2');}
+  }
+}
+function _syncActivityPanel(key){
+  const src=document.getElementById('panel_'+key);
+  const dest=document.getElementById('actPanel_'+key);
+  if(!src||!dest)return;
+  if(dest.children.length===0){while(src.firstChild)dest.appendChild(src.firstChild);}
+}
+
+
+/* ── Term tab sync — inline style to match new design + admin.js compat ── */
+function _syncTermTabs(term){
+  const map = {
+    1: {id:'termTab1',    on:{bg:'#2563eb',color:'#fff'},  off:{bg:'transparent',color:'var(--ink-500)'}},
+    2: {id:'termTab2',    on:{bg:'#7c3aed',color:'#fff'},  off:{bg:'transparent',color:'var(--ink-500)'}},
+    0: {id:'termTabYear', on:{bg:'#111827',color:'#fff'},  off:{bg:'transparent',color:'var(--ink-500)'}},
+  };
+  Object.entries(map).forEach(([t,cfg]) => {
+    const el = document.getElementById(cfg.id);
+    if (!el) return;
+    const s = parseInt(t) === term ? cfg.on : cfg.off;
+    el.style.background = s.bg;
+    el.style.color       = s.color;
+  });
+  const txt = document.getElementById('floatSaveTxt');
+  if (txt) txt.textContent = term===0 ? 'บันทึกทั้งปี' : `บันทึกเทอม ${term}`;
+  const saveBtn = document.querySelector('.btn-save');
+  if (saveBtn) saveBtn.textContent = term===0 ? '💾 บันทึกทั้งปี' : `💾 บันทึกเทอม ${term}`;
+}
+const _origSGT=window.switchGradeTerm;
+window.switchGradeTerm=function(term){if(typeof _origSGT==='function')_origSGT(term);_syncTermTabs(term);};
+
+/* ── showScoreMain: sync gtab ── */
+const _origSSM=window.showScoreMain;
+window.showScoreMain=function(btn){
+  if(typeof _origSSM==='function')_origSSM(btn);
+  document.querySelectorAll('.gtab').forEach(b=>b.classList.remove('active'));
+  const m=document.getElementById('gtabScoreMain');
+  if(m)m.classList.add('active');
+};
+
+/* ── switchSettingsTab override ── */
+const _origSwST=window.switchSettingsTab;
+window.switchSettingsTab=function(tid,btn){
+  if(typeof _origSwST==='function')_origSwST(tid,btn);
+  if(tid==='activities')_syncActivityPanel('rtw');
+};
+</script>
+</body>
+</html>
