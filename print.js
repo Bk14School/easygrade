@@ -205,7 +205,7 @@ function buildPp6StudentData(stu, type) {
 }
 
 function buildPp6HTML(d, type) {
-  const OBEC = 'https://raw.githubusercontent.com/Bk14School/easygrade/refs/heads/main/logo-OBEC.png';
+  const OBEC = 'https://raw.githubusercontent.com/Bk14School/easygrademain/refs/heads/main/logo-OBEC.png';
   const isSem  = App.isSemMode;
   const termNo = d.classroom.includes('เทอม 2') ? '2' : '1';
   const fullCls = classLabel(d.classroom).replace(/ภาคเรียนที่\s*[12]/g,'').trim();
@@ -782,7 +782,7 @@ function getPp5Data(forceTermNum) {
 }
 
 function buildPp5Cover(d) {
-  const OBEC = 'https://raw.githubusercontent.com/Bk14School/easygrade/refs/heads/main/logo-OBEC.png';
+  const OBEC = 'https://raw.githubusercontent.com/Bk14School/easygrademain/refs/heads/main/logo-OBEC.png';
   const sp   = safeObj(d.profile);
   const ci   = safeObj(d.courseInfo);
   const gb   = safeObj(d.gb);
@@ -1493,7 +1493,7 @@ async function openAllGradesSummary() {
   win.document.write('<html><body style="font-family:sans-serif;padding:20px;"><p>⏳ กำลังโหลดข้อมูลทุกชั้น...</p></body></html>');
 
   const allCls  = CONFIG.ALL_CLS || [];
-  const isMath  = c => ['ม.1','ม.2','ม.3'].some(m => String(c).startsWith(m));
+  const isMath  = c =>['ม.1','ม.2','ม.3'].some(m => String(c).startsWith(m));
   const FS      = 9; // font-size ใน table (px)
 
   Utils.showLoading('กำลังโหลดข้อมูลทุกชั้น...');
@@ -1516,10 +1516,12 @@ async function openAllGradesSummary() {
 
   // helper รวบรวมชื่อวิชาจาก stuList
   const collectSubjs = (stuList) => {
-    const names = [], seen = new Set();
+    const names =[], seen = new Set();
     stuList.forEach(s => {
       [...(s.basicSubjects||[]), ...(s.addSubjects||[])].forEach(sb => {
-        if (!seen.has(sb.name)) { seen.add(sb.name); names.push(sb.name); }
+        // FIX 1: ตัด suffix เลข 1-9 ออก เพื่อ merge วิชาเดียวกัน (รองรับ ม.1-ม.3)
+        const normName = sb.name.replace(/\s+[1-9]$/, '').trim();
+        if (!seen.has(normName)) { seen.add(normName); names.push(normName); }
       });
     });
     return names;
@@ -1535,7 +1537,7 @@ async function openAllGradesSummary() {
     const allIds  = [...new Set([...Object.keys(mapT1), ...Object.keys(mapT2)])];
     if (!allIds.length) return '';
 
-    // ชื่อวิชา
+    // ชื่อวิชา (normalized — ไม่มี suffix ตัวเลข)
     const allStuT1 = Object.values(mapT1);
     const allStuT2 = Object.values(mapT2);
     const subjNames = collectSubjs([...allStuT1, ...allStuT2]);
@@ -1543,12 +1545,33 @@ async function openAllGradesSummary() {
 
     // COLS_PER_PAGE
     const COLS = Math.ceil(subjNames.length / Math.ceil(subjNames.length / 5));
-    const chunks = [];
+    const chunks =[];
     for (let i = 0; i < subjNames.length; i += COLS) chunks.push(subjNames.slice(i, i+COLS));
 
-    const getMap = stu => {
+    // FIX 2: ดึงข้อมูลแยกเทอมด้วยตรรกะ เลขคี่=เทอม 1, เลขคู่=เทอม 2
+    const getMap = (stu, termNum) => {
       const m = {};
-      [...(stu?.basicSubjects||[]), ...(stu?.addSubjects||[])].forEach(s => { m[s.name] = s; });
+      [...(stu?.basicSubjects||[]), ...(stu?.addSubjects||[])].forEach(s => {
+        const normName = s.name.replace(/\s+[1-9]$/, '').trim();
+        const match    = s.name.match(/\s+([1-9])$/);
+        const suffix   = match ? parseInt(match[1]) : null;
+
+        let isMatchTerm = false;
+        if (!suffix) {
+          isMatchTerm = true; // ไม่มีเลข ถือว่าใช้ได้ทุกเทอม
+        } else {
+          // เช็คว่าเลขคี่(เทอม1) หรือ เลขคู่(เทอม2)
+          const isOdd = (suffix % 2 !== 0);
+          if (termNum === 1 && isOdd) isMatchTerm = true;
+          if (termNum === 2 && !isOdd) isMatchTerm = true;
+        }
+
+        if (isMatchTerm) {
+          m[normName] = s;
+        } else if (!m[normName] && !suffix) {
+          m[normName] = s;
+        }
+      });
       return m;
     };
 
@@ -1563,12 +1586,9 @@ async function openAllGradesSummary() {
     return chunks.map((chunk, chunkIdx) => {
       const isLast = chunkIdx === chunks.length - 1;
 
-      // ── ประถม: เก็บ1 สอบ1 รวม1 | เก็บ2 สอบ2 รวม2 | รวมเก็บ รวมสอบ รวม เกรด ──
-      // ── มัธยม: แสดงแต่ละ term แยก (ตาม ag_term ที่เลือก หรือแสดงทั้งสองถ้า type=year) ──
-
       if (!isMathCls) {
         // ── ประถม ──
-        const COL_PER_SUBJ = 10; // เก็บ1 สอบ1 รวม1 | เก็บ2 สอบ2 รวม2 | รวมเก็บ รวมสอบ รวม เกรด
+        const COL_PER_SUBJ = 10; 
         const hd1 = chunk.map(n =>
           '<th colspan="' + COL_PER_SUBJ + '" style="background:#1e3a5f;color:#fff;white-space:nowrap;padding:2px 4px;font-size:' + FS + 'px;">' + escH(n) + '</th>'
         ).join('') + (isLast ? '<th rowspan="3" style="background:#0f172a;color:#fff;width:40px;font-size:' + FS + 'px;">GPA</th>' : '');
@@ -1592,18 +1612,24 @@ async function openAllGradesSummary() {
           const name = (s1||s2)?.name || id;
           const isR  = !!(s1||s2)?.hasR;
           const cells = chunk.map(n => {
-            const d1 = getMap(s1)[n], d2 = getMap(s2)[n];
+            const d1 = getMap(s1, 1)[n], d2 = getMap(s2, 2)[n];
             const k1 = d1?.keep ?? '', ex1 = d1?.exam ?? '', tot1 = d1?.score ?? '';
             const k2 = d2?.keep ?? '', ex2 = d2?.exam ?? '', tot2 = d2?.score ?? '';
-            // รวม 2 เทอม
+            
+            // FIX 3: ซ่อนคำว่า "ติด ร" จากคอลัมน์คะแนน
+            const dTot1 = String(tot1).includes('ร') ? '' : tot1;
+            const dTot2 = String(tot2).includes('ร') ? '' : tot2;
+
             const sumK   = (k1  !== '' || k2  !== '') ? ((Number(k1 )||0) + (Number(k2 )||0)) : '';
             const sumEx  = (ex1 !== '' || ex2 !== '') ? ((Number(ex1)||0) + (Number(ex2)||0)) : '';
-            const sumTot = (tot1!== '' || tot2!== '') ? ((Number(tot1)||0) + (Number(tot2)||0)) : '';
-            // คำนวณเกรดจาก sumTot (0–100 สำหรับประถม รวม 2 เทอม) แทนค่าจาก GAS
-            const grade  = isR ? 'ร' : calcGradeNorm(sumTot, 100, false);
+            let sumTot = (dTot1!== '' || dTot2!== '') ? ((Number(dTot1)||0) + (Number(dTot2)||0)) : '';
+            
+            const grade  = (isR || String(tot1).includes('ร') || String(tot2).includes('ร')) ? 'ร' : calcGradeNorm(sumTot, 100, false);
+            if (grade === 'ร') sumTot = '';
             const gc = gradeColor(grade);
-            return '<td>' + k1 + '</td><td>' + ex1 + '</td><td style="background:#dbeafe;font-weight:600;">' + tot1 + '</td>' +
-                   '<td>' + k2 + '</td><td>' + ex2 + '</td><td style="background:#e0f2fe;font-weight:600;">' + tot2 + '</td>' +
+
+            return '<td>' + k1 + '</td><td>' + ex1 + '</td><td style="background:#dbeafe;font-weight:600;">' + dTot1 + '</td>' +
+                   '<td>' + k2 + '</td><td>' + ex2 + '</td><td style="background:#e0f2fe;font-weight:600;">' + dTot2 + '</td>' +
                    '<td style="background:#d1fae5;">' + sumK + '</td><td style="background:#d1fae5;">' + sumEx + '</td>' +
                    '<td style="background:#a7f3d0;font-weight:700;">' + sumTot + '</td>' +
                    '<td style="background:#dcfce7;' + gc + '">' + escH(grade) + '</td>';
@@ -1629,9 +1655,8 @@ async function openAllGradesSummary() {
           '</thead><tbody>' + bodyRows + '</tbody></table></div>';
 
       } else {
-        // ── มัธยม: เก็บ1 สอบ1 รวม1 เกรด | เก็บ2 สอบ2 รวม2 เกรด ในตารางเดียว ──
-        const COL_MATH = 8; // เก็บ1 สอบ1 รวม1 เกรด1 | เก็บ2 สอบ2 รวม2 เกรด2
-        // รวม ids จากทั้งสอง term
+        // ── มัธยม ──
+        const COL_MATH = 8;
         const mathIds = [...new Set([...Object.keys(mapT1), ...Object.keys(mapT2)])]
           .sort((a,b) => String(a).localeCompare(String(b),undefined,{numeric:true}));
         if (!mathIds.length) return '';
@@ -1658,24 +1683,33 @@ async function openAllGradesSummary() {
           const s1 = mapT1[id], s2 = mapT2[id];
           const name = (s1||s2)?.name || id;
           const isR  = !!(s1||s2)?.hasR;
-          const sm1 = getMap(s1), sm2 = getMap(s2);
+          const sm1 = getMap(s1, 1), sm2 = getMap(s2, 2);
+          
           const cells = chunk.map(n => {
             const d1 = sm1[n], d2 = sm2[n];
             const k1 = d1?.keep??'', ex1 = d1?.exam??'', tot1 = d1?.score??'';
             const k2 = d2?.keep??'', ex2 = d2?.exam??'', tot2 = d2?.score??'';
-            // คำนวณเกรดจาก tot (มัธยม max=100 ต่อเทอม) แทนค่าจาก GAS
-            const gr1 = isR ? 'ร' : calcGradeNorm(tot1, 100, false);
-            const gr2 = isR ? 'ร' : calcGradeNorm(tot2, 100, false);
+            
+            // FIX 3: ซ่อนคำว่า "ติด ร" จากคอลัมน์คะแนนรวมให้เหลือว่างๆ
+            const dTot1 = String(tot1).includes('ร') ? '' : tot1;
+            const dTot2 = String(tot2).includes('ร') ? '' : tot2;
+
+            // ดันเกรดเป็น ร ถ้าพบคำว่า ร ในคะแนน หรือ isR เป็นจริง
+            const gr1 = (isR || String(tot1).includes('ร')) ? 'ร' : calcGradeNorm(dTot1, 100, false);
+            const gr2 = (isR || String(tot2).includes('ร')) ? 'ร' : calcGradeNorm(dTot2, 100, false);
             const gc1 = gradeColor(gr1), gc2 = gradeColor(gr2);
+
             return '<td>' + k1 + '</td><td>' + ex1 + '</td>' +
-                   '<td style="background:#dbeafe;font-weight:600;">' + tot1 + '</td>' +
+                   '<td style="background:#dbeafe;font-weight:600;">' + dTot1 + '</td>' +
                    '<td style="background:#fef3c7;' + gc1 + '">' + escH(gr1) + '</td>' +
                    '<td>' + k2 + '</td><td>' + ex2 + '</td>' +
-                   '<td style="background:#e0f2fe;font-weight:600;">' + tot2 + '</td>' +
+                   '<td style="background:#e0f2fe;font-weight:600;">' + dTot2 + '</td>' +
                    '<td style="background:#fef9c3;' + gc2 + '">' + escH(gr2) + '</td>';
           }).join('');
+          
           const gpa = (s1||s2)?.hasR ? 'รอผล' : ((s2||s1)?.gpa || '');
           const gpaStyle = (s1||s2)?.hasR ? 'color:#dc2626;font-weight:700;' : 'color:#166534;font-weight:700;';
+          
           return '<tr style="' + (ri%2===1?'background:#f8fafc;':'') + '">' +
             '<td style="font-size:' + FS + 'px;">' + (ri+1) + '</td>' +
             '<td style="text-align:left;white-space:nowrap;padding:2px 4px;font-size:' + FS + 'px;">' + escH(name) + '</td>' +
