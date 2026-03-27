@@ -1703,9 +1703,11 @@ function toggleSubjectManager() { switchAdminTab('subjects', document.getElement
         <div style="font-weight:700;font-size:.84rem;color:var(--band-t1);margin-bottom:5px;">📊 สรุปเกรด / ปพ.6</div>
         <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:10px;">สรุปผลการเรียนรายภาคหรือรายปี</div>
         <div style="display:flex;flex-direction:column;gap:6px;">
+          <!-- ประถม: แสดง 2 ปุ่ม (เทอม 1 / ทั้งปี) -->
           <button id="btnPp6T1"   class="btn-pri" style="background:var(--band-t2);min-height:34px;" onclick="printClassPDF('term1')">🖨️ ปพ.6 เทอม 1</button>
           <button id="btnPp6Year" class="btn-pri" style="background:var(--band-t1);min-height:34px;" onclick="printClassPDF('year')">🖨️ ปพ.6 ทั้งปี</button>
-          <button id="btnPp6Sem"  class="btn-pri" style="display:none;background:var(--accent);min-height:34px;" onclick="printClassPDF('term1')">🖨️ ปพ.6</button>
+          <!-- มัธยม: ปุ่มเดียว เปิด modal เลือกเทอม -->
+          <button id="btnPp6Math" class="btn-pri" style="display:none;background:var(--accent);min-height:34px;" onclick="printPp6Auto()">🖨️ ปพ.6 (เลือกเทอม)</button>
           <button class="btn-pri" style="background:var(--ink-700);min-height:34px;" onclick="openSummaryModeModal()">📊 สรุปเกรด (ออนไลน์)</button>
         </div>
       </div>
