@@ -173,10 +173,15 @@ function buildPp6StudentData(stu, type) {
     let score, grade;
 
     if (isSem) {
-      score = Number(g.t1_total) || 0;
-      grade = String(g.t1_grade || scoreToGrade(score));
+      // โหมด sem (มัธยม): ดูจาก type ว่าเทอมไหน
+      const tNum = type === 'term2' ? 2 : 1;
+      score = Number(g[`t${tNum}_total`]) || 0;
+      grade = String(g[`t${tNum}_grade`] || scoreToGrade(score));
     } else if (type === 'term1') {
       score = Number(g.t1_total) || 0;
+      grade = scoreToGrade(score);
+    } else if (type === 'term2') {
+      score = Number(g.t2_total) || 0;
       grade = scoreToGrade(score);
     } else {
       score = Number(g.grand_total) || 0;
@@ -207,29 +212,78 @@ function buildPp6StudentData(stu, type) {
 function buildPp6HTML(d, type) {
   const OBEC = 'https://raw.githubusercontent.com/Bk14School/easygrademain/refs/heads/main/logo-OBEC.png';
   const isSem  = App.isSemMode;
-  const termNo = d.classroom.includes('เทอม 2') ? '2' : '1';
+  const isMath = ['ม.1','ม.2','ม.3'].some(c =>
+    String(d.classroom || '').split(' เทอม')[0].trim().startsWith(c)
+  ) || !!(App && App._pp6MathMode);
+  // fallback chain: parameter → d._printType → App state → 'year'
+  const resolvedType = type || d._printType || App._pp6PrintType || 'year';
+  console.log('[ปพ.6 DEBUG] buildPp6HTML type=', type, '| d._printType=', d._printType, '| App._pp6PrintType=', App._pp6PrintType, '| resolvedType=', resolvedType);
+  const termNo = resolvedType === 'term2' ? '2' : '1';
   const fullCls = classLabel(d.classroom).replace(/ภาคเรียนที่\s*[12]/g,'').trim();
-  const yearLbl = isSem ? `ภาคเรียนที่ ${termNo} ปีการศึกษา ${d.year}`
-    : type === 'term1' ? `ภาคเรียนที่ 1 ปีการศึกษา ${d.year}`
-    : type === 'term2' ? `ภาคเรียนที่ 2 ปีการศึกษา ${d.year}`
-    : `ปีการศึกษา ${d.year}`;
-  const maxScore = isSem ? 100
-    : type === 'term1' ? 50
-    : type === 'term2' ? 50
-    : 100; // ทั้งปี = T1+T2
+  const yr = String(d.year || '').trim() || $('gYear')?.value || '';
+  const yearLbl = resolvedType === 'term1' ? `ภาคเรียนที่ 1 ปีการศึกษา ${yr}`
+    : resolvedType === 'term2' ? `ภาคเรียนที่ 2 ปีการศึกษา ${yr}`
+    : isSem ? `ภาคเรียนที่ ${termNo} ปีการศึกษา ${yr}`
+    : `ปีการศึกษา ${yr}`;
 
-  const isMathMode = !!(App && App._pp6MathMode);
+  // มัธยม: คะแนนเต็ม 100 เสมอ (ทั้งเทอม 1 และเทอม 2)
+  // ประถมเทอม 1/2: 50 | ประถมทั้งปี: 100
+  const maxScore = isMath ? 100
+    : (resolvedType === 'term1' || resolvedType === 'term2') ? 50
+    : 100;
+
   // ประถมเทอม 1: แสดงแค่คะแนน ไม่มีเกรด
-  const isPrathumT1 = !isMathMode && type === 'term1';
-  const mkRow = (s) => isPrathumT1
-    ? `<tr><td>${escH(s.name)}</td>
-       <td class="center">${s.score === '' ? '' : s.score}</td></tr>`
-    : `<tr><td>${escH(s.name)}</td>
-       <td class="center">${s.score === '' ? '' : s.score}</td>
-       <td class="center" style="font-weight:700;">${escH(s.grade)}</td></tr>`;
+  // ประถมเทอม 1: แสดงแค่คะแนน ไม่มีเกรด
+  const isPrathumT1 = !isMath && resolvedType === 'term1';
+  const _isRGrade = (g) => {
+    const s = String(g||'').trim();
+    return s === 'ร' || s.includes('ติด') || (!['4','3.5','3','2.5','2','1.5','1','0',''].includes(s) && isNaN(Number(s)));
+  };
+  const mkRow = (s) => {
+    const scoreIsR = _isRGrade(s.score);
+    const gradeIsR = _isRGrade(s.grade) || scoreIsR; // ถ้า score ติด ร → grade ก็ติด ร
+    const scoreDisplay = scoreIsR ? 'ติด ร'
+      : (s.score === '' || s.score == null) ? '' : s.score;
+    const gradeDisplay = gradeIsR ? 'ร'
+      : (s.grade === '' || s.grade == null) ? '' : s.grade;
+    if (isPrathumT1) {
+      return `<tr><td>${escH(s.name)}</td>
+         <td class="center">${scoreDisplay}</td></tr>`;
+    }
+    return `<tr><td>${escH(s.name)}</td>
+       <td class="center">${scoreDisplay}</td>
+       <td class="center" style="font-weight:700;${gradeIsR?'color:#dc2626;':''}">${escH(gradeDisplay)}</td></tr>`;
+  };
   const emptyRow = isPrathumT1
     ? `<tr><td>-</td><td></td></tr>`
     : `<tr><td>-</td><td></td><td></td></tr>`;
+  // คำนวณ hasR และ GPA จาก grade ที่มีใน items โดยตรง (ไม่พึ่ง GAS)
+  // _isR เช็คทุกรูปแบบ: 'ร', 'ติด ร', 'ติด s', score=0 แต่ไม่มีเกรด
+  const _isR = (g) => {
+    const s = String(g||'').trim();
+    if (s === '') return false;
+    if (s === 'ร' || s.includes('ติด')) return true;
+    // encoding ผิด — ไม่ใช่ตัวเลขและไม่ใช่เกรดปกติ
+    const validGrades = ['4','3.5','3','2.5','2','1.5','1','0'];
+    if (!validGrades.includes(s) && isNaN(Number(s))) return true;
+    return false;
+  };
+  const _allItems = [...(d.basicSubjects||[]), ...(d.addSubjects||[])];
+  // เช็ค hasR จากทั้ง grade และ score (กรณี grade ว่างแต่ score = 'ติด ร')
+  const _actualHasR = _allItems.some(s => _isR(s.grade) || _isR(s.score));
+  const _gradeVals = _allItems
+    .map(s => {
+      if (_isR(s.grade) || _isR(s.score)) return NaN;
+      const g = String(s.grade||'').trim();
+      if (g === '') return NaN;
+      return Number(g);
+    })
+    .filter(n => !isNaN(n) && n >= 0);
+  const _computedGpa = _actualHasR ? '' :
+    (_gradeVals.length > 0
+      ? (_gradeVals.reduce((a,b) => a+b, 0) / _gradeVals.length).toFixed(2)
+      : '');
+
   const basicRows = d.basicSubjects.map(mkRow).join('') || emptyRow;
   const addRows   = d.addSubjects.map(mkRow).join('')   || emptyRow;
 
@@ -277,7 +331,7 @@ function buildPp6HTML(d, type) {
       ${isPrathumT1 ? '' : `
       <tr style="font-weight:700;">
         <td colspan="2" class="center">เกรดเฉลี่ย (GPA)</td>
-        <td class="center">${escH(d.hasR ? 'รอผล (ติด ร)' : d.gpa)}</td>
+        <td class="center">${_actualHasR ? '' : escH(_computedGpa)}</td>
       </tr>`}
     </tbody>
   </table>
@@ -296,9 +350,15 @@ function buildPp6HTML(d, type) {
         <tr><td>คุณลักษณะอันพึงประสงค์</td><td class="center"><b>${escH(normHolistic(d.holistic.char))}</b></td></tr>
         <tr><td>การอ่าน คิดวิเคราะห์ และเขียน</td><td class="center"><b>${escH(normHolistic(d.holistic.read))}</b></td></tr>
       </table>
-      <table style="border:none;width:100%;font-size:13px;">
-        <tr><td style="border:none;padding-top:14px;">ลงชื่อ .............................................<br>ครูประจำชั้น</td></tr>
-        <tr><td style="border:none;padding-top:14px;">ลงชื่อ .............................................<br>ผู้บริหารสถานศึกษา</td></tr>
+      <table style="border:none;width:100%;font-size:13px;margin-top:20px;">
+        <tr><td style="border:none;text-align:center;padding-top:30px;">
+          ลงชื่อ .............................................<br>
+          <span style="font-size:12px;">( ครูประจำชั้น )</span>
+        </td></tr>
+        <tr><td style="border:none;text-align:center;padding-top:30px;">
+          ลงชื่อ .............................................<br>
+          <span style="font-size:12px;">( ผู้บริหารสถานศึกษา )</span>
+        </td></tr>
       </table>
     </div>
   </div>
@@ -315,6 +375,14 @@ async function fetchPp6SummaryData(type = 'year') {
 }
 
 async function printRowPDF(sid, type = 'year') {
+  const cls = App.loadedClass || $('gClass')?.value || '';
+  const isMathCls = ['ม.1','ม.2','ม.3'].some(c => cls.startsWith(c));
+  if (isMathCls && type !== 'term1' && type !== 'term2') {
+    App._pp6MathMode = true;
+    App._pp6PendingSid = sid; // เก็บ sid ไว้รอ
+    return _showPp6TermModalSingle(sid);
+  }
+
   const win = window.open('', '_blank');
   if (!win) return Utils.toast('กรุณาอนุญาต Popup ใน browser ด้วยครับ', 'error');
   win.document.write('<html><body style="font-family:sans-serif;padding:20px;"><p>⏳ กำลังโหลดข้อมูล...</p></body></html>');
@@ -354,14 +422,95 @@ async function printRowPDF(sid, type = 'year') {
 async function printPp6Auto(type = 'year') {
   const cls = App.loadedClass || $('gClass')?.value || '';
   const isMath = ['ม.1','ม.2','ม.3'].some(c => cls.startsWith(c));
-  // มัธยม: ใช้ buildPp6HTML แบบมัธยม (รวม+เกรด เท่านั้น)
-  // ประถม: ใช้ buildPp6HTML เดิม
   App._pp6MathMode = isMath;
+
+  if (isMath) {
+    // มัธยม: ให้เลือกเทอมก่อน
+    return _showPp6TermModal();
+  }
+  // ประถม: term1 = แสดงคะแนน, year = แสดงรวม+เกรด
   return printClassPDF(type);
 }
 
+// ── modal เลือกเทอม ปพ.6 มัธยม (รายบุคคล) ──
+function _showPp6TermModalSingle(sid) {
+  const old = document.getElementById('_pp6TermModal');
+  if (old) old.remove();
+  const modal = document.createElement('div');
+  modal.id = '_pp6TermModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:28px 32px;width:95%;max-width:360px;box-shadow:0 20px 50px rgba(0,0,0,.15);text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:6px;">📋</div>
+      <div style="font-weight:800;font-size:1rem;color:#1e293b;margin-bottom:4px;">พิมพ์ ปพ.6 มัธยม</div>
+      <div style="font-size:.83rem;color:#64748b;margin-bottom:20px;">เลือกภาคเรียนที่ต้องการพิมพ์</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="document.getElementById('_pp6TermModal').remove(); printRowPDF('${sid}','term1')"
+          style="padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#6d28d9,#5b21b6);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          📘 ภาคเรียนที่ 1
+        </button>
+        <button onclick="document.getElementById('_pp6TermModal').remove(); printRowPDF('${sid}','term2')"
+          style="padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#0369a1,#075985);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          📗 ภาคเรียนที่ 2
+        </button>
+        <button onclick="document.getElementById('_pp6TermModal').remove()"
+          style="padding:9px;border:1.5px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#64748b;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          ยกเลิก
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+// ── modal เลือกเทอม ปพ.6 มัธยม (ทั้งห้อง) ──
+function _showPp6TermModal() {
+  // ลบ modal เก่าถ้ามี
+  const old = document.getElementById('_pp6TermModal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = '_pp6TermModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:28px 32px;width:95%;max-width:360px;box-shadow:0 20px 50px rgba(0,0,0,.15);text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:6px;">📋</div>
+      <div style="font-weight:800;font-size:1rem;color:#1e293b;margin-bottom:4px;">พิมพ์ ปพ.6 มัธยม</div>
+      <div style="font-size:.83rem;color:#64748b;margin-bottom:20px;">เลือกภาคเรียนที่ต้องการพิมพ์</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="document.getElementById('_pp6TermModal').remove(); printClassPDF('term1')"
+          style="padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#6d28d9,#5b21b6);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          📘 ภาคเรียนที่ 1
+        </button>
+        <button onclick="document.getElementById('_pp6TermModal').remove(); printClassPDF('term2')"
+          style="padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#0369a1,#075985);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          📗 ภาคเรียนที่ 2
+        </button>
+        <button onclick="document.getElementById('_pp6TermModal').remove()"
+          style="padding:9px;border:1.5px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#64748b;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          ยกเลิก
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
 async function printClassPDF(type = 'year') {
-  if (!confirm(`พิมพ์ ปพ.6 ${type === 'term1' ? 'ภาคเรียนที่ 1' : 'ทั้งปี'} ทั้งห้อง?`)) return;
+  const cls = App.loadedClass || $('gClass')?.value || '';
+  const isMathCls = ['ม.1','ม.2','ม.3'].some(c => cls.startsWith(c));
+
+  // ถ้าเป็นมัธยมและยังไม่ได้เลือกเทอมที่ถูกต้อง → เปิด modal เลือกเทอม
+  if (isMathCls && type !== 'term1' && type !== 'term2') {
+    App._pp6MathMode = true;
+    return _showPp6TermModal();
+  }
+
+  const termLabel = type === 'term1' ? 'ภาคเรียนที่ 1'
+    : type === 'term2' ? 'ภาคเรียนที่ 2'
+    : 'ทั้งปี';
+  if (!confirm(`พิมพ์ ปพ.6 ${termLabel} ทั้งห้อง?`)) return;
+
+  // เก็บ type ไว้ใน App state เป็น fallback
+  App._pp6PrintType = type;
 
   const win = window.open('', '_blank');
   if (!win) return Utils.toast('กรุณาอนุญาต Popup ใน browser ด้วยครับ', 'error');
@@ -371,6 +520,9 @@ async function printClassPDF(type = 'year') {
   try {
     const res = await fetchPp6SummaryData(type);
     const students = res.students || [];
+    // ใช้ mode ที่ GAS ยืนยันกลับมา เพื่อป้องกัน type หาย
+    const confirmedType = res.mode || type;
+    console.log('[ปพ.6 DEBUG] type=', type, '| res.mode=', res.mode, '| confirmedType=', confirmedType);
 
     if (!students.length) {
       Utils.hideLoading();
@@ -378,7 +530,10 @@ async function printClassPDF(type = 'year') {
       return Utils.toast('ไม่พบข้อมูลนักเรียน', 'error');
     }
 
-    const pages = students.map(stu => buildPp6HTML(stu, type)).join('\n');
+    const pages = students.map(stu => {
+      stu._printType = confirmedType; // inject type เข้า object โดยตรง
+      return buildPp6HTML(stu, confirmedType);
+    }).join('\n');
     const extra = `.page{min-height:96vh;} table{font-size:14px;}`;
 
     writeToPrintWindow(win, `<!DOCTYPE html><html lang="th"><head>
