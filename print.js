@@ -1635,29 +1635,61 @@ window._doPrintPp5 = _doPrintPp5;
 // =====================================================
 // สรุปเกรดทุกชั้น (Admin)
 // =====================================================
-async function openAllGradesSummary() {
+async function openAllGradesSummary(group) {
   const year = $('ag_year')?.value || $('gYear')?.value || '2568';
   const type = $('ag_term')?.value || 'year';
+
+  // ── มัธยม: อ่านค่าจาก UI ──────────────────────────
+  const secTermEl = $('ag_sec_term');
+  const showREl   = $('ag_show_r');
+  const secTerm   = (group === 'secondary' && secTermEl) ? (secTermEl.value || 'term1') : null;
+  const showR     = (group === 'secondary' && showREl)   ? showREl.checked : true;
+
   const profile    = getSchoolProfileSafe();
   const schoolName = escH((profile && profile.school_name) || 'โรงเรียนบ้านคลอง 14');
-  const termLabel  = type === 'term1' ? 'ภาคเรียนที่ 1'
-    : type === 'term2' ? 'ภาคเรียนที่ 2' : 'ทั้งปี';
+
+  // label สำหรับ title
+  const termLabel = group === 'secondary'
+    ? (secTerm === 'term1' ? 'ภาคเรียนที่ 1' : 'ภาคเรียนที่ 2')
+    : (type === 'term1' ? 'ภาคเรียนที่ 1' : type === 'term2' ? 'ภาคเรียนที่ 2' : 'ทั้งปี');
 
   const win = window.open('', '_blank');
   if (!win) return Utils.toast('กรุณาอนุญาต Popup ใน browser ด้วยครับ', 'error');
-  win.document.write('<html><body style="font-family:sans-serif;padding:20px;"><p>⏳ กำลังโหลดข้อมูลทุกชั้น...</p></body></html>');
+  const groupLabel = group === 'primary' ? 'ระดับประถมศึกษา' : group === 'secondary' ? 'ระดับมัธยมศึกษา' : 'ทุกชั้น';
+  win.document.write('<html><body style="font-family:sans-serif;padding:20px;"><p>⏳ กำลังโหลดข้อมูล' + groupLabel + '...</p></body></html>');
 
-  const allCls  = CONFIG.ALL_CLS || [];
+  // กรองชั้นตาม group
+  const allClsRaw = CONFIG.ALL_CLS || [];
+  const allCls = group === 'primary'
+    ? allClsRaw.filter(c => /^ป\./.test(c))
+    : group === 'secondary'
+      ? allClsRaw.filter(c => /^ม\./.test(c))
+      : allClsRaw;
   const isMath  = c =>['ม.1','ม.2','ม.3'].some(m => String(c).startsWith(m));
   const FS      = 9; // font-size ใน table (px)
 
-  Utils.showLoading('กำลังโหลดข้อมูลทุกชั้น...');
+  Utils.showLoading('กำลังโหลดข้อมูล' + groupLabel + '...');
 
-  // ดึง t1 + t2 ทุกชั้นพร้อมกัน
-  const [resT1, resT2] = await Promise.all([
-    Promise.allSettled(allCls.map(cls => api('getPp6FromSummary', { year, classroom: cls, mode: 'term1' }))),
-    Promise.allSettled(allCls.map(cls => api('getPp6FromSummary', { year, classroom: cls, mode: 'term2' })))
-  ]);
+  // มัธยม: ดึงเฉพาะเทอมที่เลือก  ประถม/ทั้งหมด: ดึงทั้ง 2 เทอม
+  let resT1, resT2;
+  if (group === 'secondary' && secTerm) {
+    if (secTerm === 'term1') {
+      [resT1, resT2] = await Promise.all([
+        Promise.allSettled(allCls.map(cls => api('getPp6FromSummary', { year, classroom: cls, mode: 'term1' }))),
+        Promise.resolve(allCls.map(() => ({ status: 'fulfilled', value: { students: [] } })))
+      ]);
+    } else {
+      [resT1, resT2] = await Promise.all([
+        Promise.resolve(allCls.map(() => ({ status: 'fulfilled', value: { students: [] } }))),
+        Promise.allSettled(allCls.map(cls => api('getPp6FromSummary', { year, classroom: cls, mode: 'term2' })))
+      ]);
+    }
+  } else {
+    [resT1, resT2] = await Promise.all([
+      Promise.allSettled(allCls.map(cls => api('getPp6FromSummary', { year, classroom: cls, mode: 'term1' }))),
+      Promise.allSettled(allCls.map(cls => api('getPp6FromSummary', { year, classroom: cls, mode: 'term2' })))
+    ]);
+  }
   Utils.hideLoading();
 
   // helper สร้าง map นักเรียน { id -> stuObj }
@@ -1703,29 +1735,24 @@ async function openAllGradesSummary() {
     const chunks =[];
     for (let i = 0; i < subjNames.length; i += COLS) chunks.push(subjNames.slice(i, i+COLS));
 
-    // FIX 2: ดึงข้อมูลแยกเทอมด้วยตรรกะ เลขคี่=เทอม 1, เลขคู่=เทอม 2
-    const getMap = (stu, termNum) => {
+    // getMap: map ชื่อวิชา normalize → subject object
+    // noFilter=true: ไม่กรอง suffix เลย (ใช้เมื่อ API ส่งข้อมูลเทอมที่ถูกต้องมาแล้ว)
+    const getMap = (stu, termNum, noFilter) => {
       const m = {};
       [...(stu?.basicSubjects||[]), ...(stu?.addSubjects||[])].forEach(s => {
         const normName = s.name.replace(/\s+[1-9]$/, '').trim();
         const match    = s.name.match(/\s+([1-9])$/);
         const suffix   = match ? parseInt(match[1]) : null;
 
-        let isMatchTerm = false;
-        if (!suffix) {
-          isMatchTerm = true; // ไม่มีเลข ถือว่าใช้ได้ทุกเทอม
-        } else {
-          // เช็คว่าเลขคี่(เทอม1) หรือ เลขคู่(เทอม2)
-          const isOdd = (suffix % 2 !== 0);
-          if (termNum === 1 && isOdd) isMatchTerm = true;
-          if (termNum === 2 && !isOdd) isMatchTerm = true;
+        if (noFilter || !suffix) {
+          // ไม่กรอง หรือ ไม่มีเลข → ใส่เสมอ (ไม่ overwrite ถ้ามีแล้ว)
+          if (!m[normName]) m[normName] = s;
+          return;
         }
-
-        if (isMatchTerm) {
-          m[normName] = s;
-        } else if (!m[normName] && !suffix) {
-          m[normName] = s;
-        }
+        // มีเลข + กรอง: เลขคี่=เทอม1, เลขคู่=เทอม2
+        const isOdd = (suffix % 2 !== 0);
+        if (termNum === 1 && isOdd)  m[normName] = s;
+        if (termNum === 2 && !isOdd) m[normName] = s;
       });
       return m;
     };
@@ -1735,8 +1762,13 @@ async function openAllGradesSummary() {
       : (g==='4'||g==='3.5'||g==='3') ? 'color:#166534;font-weight:700;'
       : g === '0' ? 'color:#dc2626;' : 'font-weight:700;';
 
-    // เรียง id
-    const sortedIds = allIds.sort((a,b) => String(a).localeCompare(String(b), undefined, {numeric:true}));
+    // เรียง id และกรองย้ายออก
+    const sortedIds = allIds
+      .filter(id => {
+        const stu = mapT1[id] || mapT2[id];
+        return !String(stu?.name || '').includes('ย้ายออก');
+      })
+      .sort((a,b) => String(a).localeCompare(String(b), undefined, {numeric:true}));
 
     return chunks.map((chunk, chunkIdx) => {
       const isLast = chunkIdx === chunks.length - 1;
@@ -1811,60 +1843,131 @@ async function openAllGradesSummary() {
 
       } else {
         // ── มัธยม ──
-        const COL_MATH = 8;
+        const isSingleTerm = !!(secTerm); // true = แสดงเทอมเดียว
+        const singleTermNum = secTerm === 'term1' ? 1 : 2;
+
+        // จำนวน col ต่อวิชา: เทอมเดียว = 4 (เก็บ สอบ รวม เกรด), 2 เทอม = 8
+        const COL_MATH = isSingleTerm ? 4 : 8;
+
         const mathIds = [...new Set([...Object.keys(mapT1), ...Object.keys(mapT2)])]
+          .filter(id => {
+            const stu = mapT1[id] || mapT2[id];
+            return !String(stu?.name || '').includes('ย้ายออก');
+          })
           .sort((a,b) => String(a).localeCompare(String(b),undefined,{numeric:true}));
         if (!mathIds.length) return '';
+
+        const termColor1 = '#1d4ed8', termColor2 = '#7c3aed';
+        const activeTColor = singleTermNum === 1 ? termColor1 : termColor2;
+        const activeTLabel = singleTermNum === 1 ? 'เทอม 1' : 'เทอม 2';
 
         const hd1Math = chunk.map(n =>
           '<th colspan="' + COL_MATH + '" style="background:#1e3a5f;color:#fff;white-space:nowrap;padding:2px 4px;font-size:' + FS + 'px;">' + escH(n) + '</th>'
         ).join('') + (isLast ? '<th rowspan="3" style="background:#0f172a;color:#fff;width:40px;font-size:' + FS + 'px;">GPA</th>' : '');
 
-        const hd2Math = chunk.map(() =>
-          '<th colspan="4" style="background:#1d4ed8;color:#fff;font-size:' + FS + 'px;">เทอม 1</th>' +
-          '<th colspan="4" style="background:#0369a1;color:#fff;font-size:' + FS + 'px;">เทอม 2</th>'
-        ).join('');
+        let hd2Math, hd3Math;
+        if (isSingleTerm) {
+          // เทอมเดียว: 4 col
+          hd2Math = chunk.map(() =>
+            '<th colspan="4" style="background:' + activeTColor + ';color:#fff;font-size:' + FS + 'px;">' + activeTLabel + '</th>'
+          ).join('');
+          const totBg = singleTermNum === 1 ? '#dbeafe' : '#ede9fe';
+          const grBg  = singleTermNum === 1 ? '#fef3c7' : '#fdf4ff';
+          hd3Math = chunk.map(() =>
+            '<th style="font-size:' + (FS-1) + 'px;">เก็บ</th>' +
+            '<th style="font-size:' + (FS-1) + 'px;">สอบ</th>' +
+            '<th style="background:' + totBg + ';font-size:' + (FS-1) + 'px;">รวม</th>' +
+            '<th style="background:' + grBg + ';color:#92400e;font-size:' + (FS-1) + 'px;">เกรด</th>'
+          ).join('');
+        } else {
+          // 2 เทอม: 8 col
+          hd2Math = chunk.map(() =>
+            '<th colspan="4" style="background:' + termColor1 + ';color:#fff;font-size:' + FS + 'px;">เทอม 1</th>' +
+            '<th colspan="4" style="background:' + termColor2 + ';color:#fff;font-size:' + FS + 'px;">เทอม 2</th>'
+          ).join('');
+          hd3Math = chunk.map(() =>
+            '<th style="font-size:' + (FS-1) + 'px;">เก็บ</th><th style="font-size:' + (FS-1) + 'px;">สอบ</th>' +
+            '<th style="background:#dbeafe;font-size:' + (FS-1) + 'px;">รวม</th>' +
+            '<th style="background:#fef3c7;color:#92400e;font-size:' + (FS-1) + 'px;">เกรด</th>' +
+            '<th style="font-size:' + (FS-1) + 'px;">เก็บ</th><th style="font-size:' + (FS-1) + 'px;">สอบ</th>' +
+            '<th style="background:#ede9fe;font-size:' + (FS-1) + 'px;">รวม</th>' +
+            '<th style="background:#fdf4ff;color:#92400e;font-size:' + (FS-1) + 'px;">เกรด</th>'
+          ).join('');
+        }
 
-        const hd3Math = chunk.map(() =>
-          '<th style="font-size:' + (FS-1) + 'px;">เก็บ</th><th style="font-size:' + (FS-1) + 'px;">สอบ</th>' +
-          '<th style="background:#dbeafe;font-size:' + (FS-1) + 'px;">รวม</th>' +
-          '<th style="background:#fef3c7;color:#92400e;font-size:' + (FS-1) + 'px;">เกรด</th>' +
-          '<th style="font-size:' + (FS-1) + 'px;">เก็บ</th><th style="font-size:' + (FS-1) + 'px;">สอบ</th>' +
-          '<th style="background:#e0f2fe;font-size:' + (FS-1) + 'px;">รวม</th>' +
-          '<th style="background:#fef9c3;color:#92400e;font-size:' + (FS-1) + 'px;">เกรด</th>'
-        ).join('');
+        // ── helpers สำหรับมัธยม ──────────────────────────────────────────
+        const _VALID_GRADES = new Set(['4','3.5','3','2.5','2','1.5','1','0']);
+        const _isRVal = (v) => {
+          const s = String(v ?? '').trim();
+          if (!s || s === '-' || s === '—') return false;
+          if (s === 'ร' || s === 'r' || s === 's') return true;
+          if (s.startsWith('ติด')) return true;
+          if (!_VALID_GRADES.has(s) && isNaN(Number(s))) return true;
+          return false;
+        };
+        // showR=true  → ถ้า API บอกว่าติด ร → grRaw='ร'
+        // showR=false → คำนวณเกรดจาก tot จริงๆ เสมอ (0-4)
+        const _cellMath = (d) => {
+          if (!d) return { k: '', ex: '', tot: '', grRaw: '' };
+          const k  = (d.keep != null && d.keep !== '') ? d.keep : '';
+          const ex = (d.exam != null && d.exam !== '') ? d.exam : '';
+          const kn = parseFloat(String(k)) || 0;
+          const en = parseFloat(String(ex)) || 0;
+          if (k === '' && ex === '') return { k: '', ex: '', tot: '', grRaw: '' };
+          if (kn === 0 && en === 0)  return { k: '', ex: '', tot: '', grRaw: '' };
+          const tot = +(kn + en).toFixed(1);
+          if (showR && (_isRVal(d.score) || _isRVal(d.grade))) return { k, ex, tot, grRaw: 'ร' };
+          const grRaw = calcGradeNorm(tot, 100, false) || '0';
+          return { k, ex, tot, grRaw };
+        };
+        // ─────────────────────────────────────────────────────────────────
 
         const bodyRowsMath = mathIds.map((id, ri) => {
           const s1 = mapT1[id], s2 = mapT2[id];
           const name = (s1||s2)?.name || id;
-          const isR  = !!(s1||s2)?.hasR;
-          const sm1 = getMap(s1, 1), sm2 = getMap(s2, 2);
-          
+          const sm1 = getMap(s1, 1, isSingleTerm);
+          const sm2 = getMap(s2, 2, isSingleTerm);
+
+          // alias ให้ใช้ชื่อเดิม
+          const _cell = _cellMath;
+
+          const totBg1 = '#dbeafe', totBg2 = '#ede9fe';
+          const grBg1  = '#fef3c7', grBg2  = '#fdf4ff';
+
           const cells = chunk.map(n => {
-            const d1 = sm1[n], d2 = sm2[n];
-            const k1 = d1?.keep??'', ex1 = d1?.exam??'', tot1 = d1?.score??'';
-            const k2 = d2?.keep??'', ex2 = d2?.exam??'', tot2 = d2?.score??'';
-            
-            // FIX 3: ซ่อนคำว่า "ติด ร" จากคอลัมน์คะแนนรวมให้เหลือว่างๆ
-            const dTot1 = String(tot1).includes('ร') ? '' : tot1;
-            const dTot2 = String(tot2).includes('ร') ? '' : tot2;
-
-            // ดันเกรดเป็น ร ถ้าพบคำว่า ร ในคะแนน หรือ isR เป็นจริง
-            const gr1 = (isR || String(tot1).includes('ร')) ? 'ร' : calcGradeNorm(dTot1, 100, false);
-            const gr2 = (isR || String(tot2).includes('ร')) ? 'ร' : calcGradeNorm(dTot2, 100, false);
-            const gc1 = gradeColor(gr1), gc2 = gradeColor(gr2);
-
-            return '<td>' + k1 + '</td><td>' + ex1 + '</td>' +
-                   '<td style="background:#dbeafe;font-weight:600;">' + dTot1 + '</td>' +
-                   '<td style="background:#fef3c7;' + gc1 + '">' + escH(gr1) + '</td>' +
-                   '<td>' + k2 + '</td><td>' + ex2 + '</td>' +
-                   '<td style="background:#e0f2fe;font-weight:600;">' + dTot2 + '</td>' +
-                   '<td style="background:#fef9c3;' + gc2 + '">' + escH(gr2) + '</td>';
+            if (isSingleTerm) {
+              // ลอง primary term ก่อน ถ้าว่างให้ fallback อีกเทอม
+              const dPri = singleTermNum === 1 ? sm1[n] : sm2[n];
+              const dAlt = singleTermNum === 1 ? sm2[n] : sm1[n];
+              let { k, ex, tot, grRaw } = _cell(dPri);
+              // fallback: ถ้า primary ว่างให้ลอง alt
+              if (k === '' && ex === '' && tot === '') {
+                ({ k, ex, tot, grRaw } = _cell(dAlt));
+              }
+              const gr  = (!showR && grRaw === 'ร') ? '—' : grRaw;
+              const gc  = gradeColor(grRaw);
+              const tBg = singleTermNum === 1 ? totBg1 : totBg2;
+              const gBg = singleTermNum === 1 ? grBg1  : grBg2;
+              return '<td>' + k + '</td><td>' + ex + '</td>' +
+                     '<td style="background:' + tBg + ';font-weight:700;">' + tot + '</td>' +
+                     '<td style="background:' + gBg + ';' + gc + '">' + escH(gr) + '</td>';
+            } else {
+              const c1 = _cell(sm1[n]), c2 = _cell(sm2[n]);
+              const gr1 = (!showR && c1.grRaw === 'ร') ? '—' : c1.grRaw;
+              const gr2 = (!showR && c2.grRaw === 'ร') ? '—' : c2.grRaw;
+              const gc1 = gradeColor(c1.grRaw), gc2 = gradeColor(c2.grRaw);
+              return '<td>' + c1.k + '</td><td>' + c1.ex + '</td>' +
+                     '<td style="background:' + totBg1 + ';font-weight:700;">' + c1.tot + '</td>' +
+                     '<td style="background:' + grBg1  + ';' + gc1 + '">' + escH(gr1) + '</td>' +
+                     '<td>' + c2.k + '</td><td>' + c2.ex + '</td>' +
+                     '<td style="background:' + totBg2 + ';font-weight:700;">' + c2.tot + '</td>' +
+                     '<td style="background:' + grBg2  + ';' + gc2 + '">' + escH(gr2) + '</td>';
+            }
           }).join('');
-          
+
           const gpa = (s1||s2)?.hasR ? 'รอผล' : ((s2||s1)?.gpa || '');
           const gpaStyle = (s1||s2)?.hasR ? 'color:#dc2626;font-weight:700;' : 'color:#166534;font-weight:700;';
-          
+
           return '<tr style="' + (ri%2===1?'background:#f8fafc;':'') + '">' +
             '<td style="font-size:' + FS + 'px;">' + (ri+1) + '</td>' +
             '<td style="text-align:left;white-space:nowrap;padding:2px 4px;font-size:' + FS + 'px;">' + escH(name) + '</td>' +
@@ -1873,8 +1976,12 @@ async function openAllGradesSummary() {
             '</tr>';
         }).join('');
 
+        const termBadge = isSingleTerm
+          ? ' <span style="font-weight:400;color:' + activeTColor + ';">(' + activeTLabel + (showR ? '' : ' · ซ่อน ร') + ')</span>'
+          : '';
+
         return '<div class="page-block">' +
-          '<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:4px;">ชั้น ' + escH(cls) + ' | ปีการศึกษา ' + year + (chunks.length>1?' ('+(chunkIdx+1)+'/'+chunks.length+')':'') + '</div>' +
+          '<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:4px;">ชั้น ' + escH(cls) + termBadge + ' | ปีการศึกษา ' + year + (chunks.length>1?' ('+(chunkIdx+1)+'/'+chunks.length+')':'') + '</div>' +
           '<table><thead>' +
           '<tr><th rowspan="3" style="background:#1e293b;color:#fff;width:26px;font-size:' + FS + 'px;">ที่</th>' +
           '<th rowspan="3" style="background:#1e293b;color:#fff;min-width:120px;font-size:' + FS + 'px;">ชื่อ-นามสกุล</th>' +
@@ -1886,9 +1993,10 @@ async function openAllGradesSummary() {
     }).join('');
   }).join('');
 
+  const rNote = (group === 'secondary' && !showR) ? ' · ซ่อนคอลัมน์ ร' : '';
   const html = `<!DOCTYPE html><html lang="th"><head>
   <meta charset="UTF-8">
-  <title>สรุปเกรดทุกชั้น ${termLabel} ปี${year}</title>
+  <title>สรุปเกรด${groupLabel} ${termLabel} ปี${year}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
   <style>
     *{font-family:'Sarabun','Tahoma',sans-serif;box-sizing:border-box;}
@@ -1911,8 +2019,8 @@ async function openAllGradesSummary() {
   </style>
   </head><body>
   <button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
-  <h2>ตารางสรุปผลการเรียนทุกชั้น</h2>
-  <h3>${termLabel} ปีการศึกษา ${year} | ${schoolName}</h3>
+  <h2>ตารางสรุปผลการเรียน${groupLabel}</h2>
+  <h3>${termLabel} ปีการศึกษา ${year}${rNote} | ${schoolName}</h3>
   ${sections || '<p style="text-align:center;color:#94a3b8;">ไม่พบข้อมูล</p>'}
   </body></html>`;
 
@@ -2018,17 +2126,34 @@ function _doExportCSV() {
   const { students, subjNames, cls, termLabel, year } = _csvExportData;
   document.getElementById('csvSortModal').style.display = 'none';
 
-  const sorted = [...students].sort((a, b) =>
-    String(a.id).localeCompare(String(b.id), undefined, { numeric: true })
-  );
+  const isMathCls = ['ม.1','ม.2','ม.3'].some(c => String(cls).startsWith(c));
+
+  // คำนวณเกรดจริงจาก keep+exam (ไม่ใช้ grade จาก API)
+  const _calcGrade = (s) => {
+    if (!s) return '';
+    const kn = parseFloat(String(s.keep ?? '')) || 0;
+    const en = parseFloat(String(s.exam ?? '')) || 0;
+    if (kn === 0 && en === 0) return '';
+    const tot = kn + en;
+    return calcGradeNorm(tot, isMathCls ? 100 : 100, false) || '0';
+  };
+
+  const sorted = [...students]
+    .filter(stu => !String(stu.name || '').includes('ย้ายออก'))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
 
   const csvQ = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const headers = ['รหัสประจำตัว', 'ชื่อ-นามสกุล', ...subjNames, 'GPA'];
   const rows = sorted.map(stu => {
     const sm = {};
     [...(stu.basicSubjects||[]), ...(stu.addSubjects||[])].forEach(s => { sm[s.name] = s; });
-    const grades = subjNames.map(n => sm[n]?.grade ?? '');
-    return [stu.id, stu.name, ...grades, stu.hasR ? 'รอผล' : stu.gpa].map(csvQ).join(',');
+    const grades = subjNames.map(n => _calcGrade(sm[n]));
+    // GPA คำนวณจากเกรดที่ได้จริง (ไม่นับว่าง)
+    const gradeVals = grades.map(Number).filter(n => !isNaN(n) && n >= 0);
+    const gpa = gradeVals.length
+      ? (gradeVals.reduce((a, b) => a + b, 0) / gradeVals.length).toFixed(2)
+      : '';
+    return [stu.id, stu.name, ...grades, gpa].map(csvQ).join(',');
   });
 
   const csv  = '\uFEFF' + [headers.map(csvQ).join(','), ...rows].join('\n');
