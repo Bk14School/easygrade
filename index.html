@@ -1550,10 +1550,33 @@ function toggleSubjectManager() { switchAdminTab('subjects', document.getElement
       <div class="sg"><label>ภาคเรียน</label><select id="ag_term" class="form-select" style="min-width:150px;"><option value="term1">ภาคเรียนที่ 1</option><option value="term2">ภาคเรียนที่ 2</option><option value="year">ทั้งปี</option></select></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:220px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
+      <div style="flex:1;min-width:240px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;">
         <div style="font-weight:700;font-size:.84rem;color:#1e40af;margin-bottom:6px;">📊 ดูสรุปเกรดออนไลน์</div>
         <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:10px;">เปิดหน้าต่างใหม่แสดงตารางเกรดทุกชั้น</div>
-        <button class="btn-apply" style="margin-top:0;min-height:36px;background:var(--band-t1);" onclick="openAllGradesSummary()">📊 ดูทุกชั้น</button>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <!-- ประถม -->
+          <button class="btn-apply" style="margin-top:0;min-height:36px;background:#0369a1;" onclick="openAllGradesSummary('primary')">🏫 ดูประถม (ป.1–ป.6)</button>
+          <!-- มัธยม: ตัวเลือกเทอม + แสดง ร -->
+          <div style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:7px;">
+            <div style="font-size:.74rem;font-weight:800;color:#3730a3;letter-spacing:.03em;">🎓 มัธยม (ม.1–ม.3)</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <label style="font-size:.73rem;color:var(--ink-700);font-weight:700;white-space:nowrap;">ภาคเรียน</label>
+              <select id="ag_sec_term" style="font-family:inherit;font-size:.78rem;border:1px solid #c7d2fe;border-radius:6px;padding:4px 8px;background:#fff;color:#1e1b4b;font-weight:700;cursor:pointer;flex:1;min-width:110px;">
+                <option value="term1">ภาคเรียนที่ 1</option>
+                <option value="term2">ภาคเรียนที่ 2</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.76rem;color:var(--ink-700);font-weight:700;user-select:none;">
+                <input type="checkbox" id="ag_show_r" style="width:14px;height:14px;accent-color:#dc2626;cursor:pointer;">
+                <span>แสดงคอลัมน์ ร</span>
+              </label>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-apply" style="margin-top:0;min-height:32px;flex:1;background:var(--band-t2);font-size:.78rem;" onclick="openAllGradesSummary('secondary')">📊 ดูมัธยม</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div style="flex:1;min-width:220px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:14px;">
         <div style="font-weight:700;font-size:.84rem;color:var(--green);margin-bottom:6px;">📥 Export เกรด CSV</div>
@@ -1703,12 +1726,10 @@ function toggleSubjectManager() { switchAdminTab('subjects', document.getElement
         <div style="font-weight:700;font-size:.84rem;color:var(--band-t1);margin-bottom:5px;">📊 สรุปเกรด / ปพ.6</div>
         <div style="font-size:.77rem;color:var(--ink-500);margin-bottom:10px;">สรุปผลการเรียนรายภาคหรือรายปี</div>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <!-- ประถม: แสดง 2 ปุ่ม (เทอม 1 / ทั้งปี) -->
+          <!-- ประถม: เทอม 1 / ทั้งปี -->
           <button id="btnPp6T1"   class="btn-pri" style="background:var(--band-t2);min-height:34px;" onclick="printClassPDF('term1')">🖨️ ปพ.6 เทอม 1</button>
+          <button id="btnPp6T2"   class="btn-pri" style="display:none;background:var(--band-t2);min-height:34px;" onclick="printClassPDF('term2')">🖨️ ปพ.6 เทอม 2</button>
           <button id="btnPp6Year" class="btn-pri" style="background:var(--band-t1);min-height:34px;" onclick="printClassPDF('year')">🖨️ ปพ.6 ทั้งปี</button>
-          <!-- มัธยม: ปุ่มเดียว เปิด modal เลือกเทอม -->
-          <button id="btnPp6Math" class="btn-pri" style="display:none;background:var(--accent);min-height:34px;" onclick="printPp6Auto()">🖨️ ปพ.6 (เลือกเทอม)</button>
-          <button class="btn-pri" style="background:var(--ink-700);min-height:34px;" onclick="openSummaryModeModal()">📊 สรุปเกรด (ออนไลน์)</button>
         </div>
       </div>
       <div style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:10px;padding:16px;">
