@@ -1107,7 +1107,7 @@ function printClubReport() {
       <div class="sign-block">
         <div>ลงชื่อ.................................................................</div>
         <div class="sign-name">หัวหน้างานกิจกรรมพัฒนาผู้เรียน</div>
-        <div class="sign-name">( ${actHeadName} )</div>
+        <div class="sign-name">(นายจิรพิพัฒน์ พะสุรัมย์)</div>
       </div>
       <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0;">
       <div style="text-align:center;margin-top:8px;">
