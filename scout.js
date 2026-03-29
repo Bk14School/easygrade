@@ -571,12 +571,12 @@ function printScoutReport() {
           '<div class="sign-block">' +
             '<div>ลงชื่อ.................................................................</div>' +
             '<div class="sign-name">หัวหน้ากิจกรรมพัฒนาผู้เรียน</div>' +
-            '<div class="sign-name">( ' + activityHeadName + ' )</div>' +
+            '<div class="sign-name">(นายจิรพิพัฒน์ พะสุรัมย์)</div>' +
           '</div>' +
           '<div class="sign-block">' +
             '<div>ลงชื่อ.................................................................</div>' +
             '<div class="sign-name">หัวหน้างานวัดผลและประเมินผล</div>' +
-            '<div class="sign-name">( ' + evalHeadName + ' )</div>' +
+            '<div class="sign-name">(นางสาวพรพรรณ บุญวัน)</div>' +
           '</div>' +
           '<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0;">' +
           '<div style="text-align:center;margin-top:8px;">' +
