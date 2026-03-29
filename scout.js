@@ -549,7 +549,7 @@ function printScoutReport() {
     var pageCover =
       '<div class="page cover-page">' +
         '<div style="text-align:center;margin-top:10mm;margin-bottom:6mm;">' +
-          '<img src="https://raw.githubusercontent.com/Bk14School/easygrade/refs/heads/main/logo-OBEC.png" style="width:90px;height:auto;">' +
+          '<img src="https://raw.githubusercontent.com/Bk14School/easygrademain/refs/heads/main/logo-OBEC.png" style="width:90px;height:auto;">' +
         '</div>' +
         '<div style="text-align:center;font-size:22px;font-weight:bold;letter-spacing:1px;margin-bottom:4mm;">แบบบันทึกผลกิจกรรมลูกเสือ-เนตรนารี</div>' +
         '<div style="text-align:center;font-size:17px;font-weight:bold;margin-bottom:8mm;">' +
